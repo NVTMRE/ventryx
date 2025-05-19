@@ -53,6 +53,14 @@
         "wind_speed": "Wind speed"
       },
       "error": "Could not fetch weather data. Please check the postal code."
+    },
+    "server_stats": {
+      "description": "Shows statistics about the server",
+      "embed_title": "Server Stats for {server}",
+      "members": "Members",
+      "channels": "Channels",
+      "roles": "Roles",
+      "error_no_guild": "This command can only be used in a server."
     }
   }
 }

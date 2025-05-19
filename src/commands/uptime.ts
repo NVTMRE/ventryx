@@ -1,4 +1,4 @@
-import {ChatInputCommandInteraction, PermissionsBitField, SlashCommandBuilder} from 'discord.js';
+import {ChatInputCommandInteraction, MessageFlags, PermissionsBitField, SlashCommandBuilder} from 'discord.js';
 import { t } from '../i18n';
 
 const startTime = Date.now(); // Save when the bot started
@@ -22,6 +22,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
   await interaction.reply({
     content: t('commands.uptime.response', { uptime: uptimeString }),
-    ephemeral: true
+    flags: MessageFlags.Ephemeral
   });
 }

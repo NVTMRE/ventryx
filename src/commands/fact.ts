@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder } from 'discord.js';
+import {ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder} from 'discord.js';
 import { t } from '../i18n';
 // @ts-ignore
 import translate from 'translatte';
@@ -20,12 +20,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       fact = translated.text;
     }
 
-    await interaction.reply({ content: `📢 ${fact}`, ephemeral: true });
+    await interaction.reply({ content: `📢 ${fact}`, flags: MessageFlags.Ephemeral });
   } catch (error) {
     console.error('Fact fetch error:', error);
     await interaction.reply({
       content: t('commands.fact.error'),
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
