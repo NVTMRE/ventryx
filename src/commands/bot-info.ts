@@ -1,6 +1,7 @@
 import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
 import { t } from '../i18n';
 import pkg from '../../package.json' assert { type: 'json' };
+import {embedColor} from "../config/embed-color";
 
 export const data = new SlashCommandBuilder()
   .setName('botinfo')
@@ -19,7 +20,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       { name: t('commands.botinfo.response.version'), value: pkg.version || 'N/A', inline: true },
       { name: t('commands.botinfo.response.license'), value: pkg.license || 'N/A', inline: true }
     )
-    .setColor(0x2f3136)
+    .setColor(embedColor)
     .setTimestamp();
 
   await interaction.reply({ embeds: [embed], ephemeral: true });

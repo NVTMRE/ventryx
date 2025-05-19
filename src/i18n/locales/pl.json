@@ -33,6 +33,11 @@
     "fact": {
       "description": "Pobierz losową ciekawostkę",
       "error": "Nie udało się pobrać ciekawostki."
+    },
+    "quote": {
+      "description": "Pobierz losowy cytat motywacyjny lub zabawny",
+      "title": "Losowy cytat",
+      "error": "Nie udało się pobrać cytatu, spróbuj ponownie później."
     }
   }
 }
