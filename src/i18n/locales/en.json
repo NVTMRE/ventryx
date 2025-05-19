@@ -70,6 +70,11 @@
       },
       "error_min_greater_max": "Error: Minimum number cannot be greater than maximum.",
       "response": "🎲 You rolled a number between {min} and {max}: **{rollResult}**"
+    },
+    "coin_flip": {
+      "description": "Flip a coin",
+      "heads": "Heads",
+      "tails": "Tails"
     }
   }
 }

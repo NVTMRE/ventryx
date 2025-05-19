@@ -71,7 +71,11 @@
       },
       "error_min_greater_max": "Błąd: minimalna liczba nie może być większa niż maksymalna.",
       "response": "🎲 Wylosowałeś liczbę z zakresu od {min} do {max}: **{rollResult}**"
+    },
+    "coin_flip": {
+      "description": "Rzut monetą",
+      "heads": "Orzeł",
+      "tails": "Reszka"
     }
-
   }
 }
