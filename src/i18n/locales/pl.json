@@ -62,6 +62,16 @@
       "channels": "Kanały",
       "roles": "Role",
       "error_no_guild": "Ta komenda działa tylko na serwerze."
+    },
+    "roll": {
+      "description": "Rzuć losową liczbę z zakresu od min do max",
+      "options": {
+        "min": "Minimalna liczba (domyślnie 1)",
+        "max": "Maksymalna liczba (domyślnie 100)"
+      },
+      "error_min_greater_max": "Błąd: minimalna liczba nie może być większa niż maksymalna.",
+      "response": "🎲 Wylosowałeś liczbę z zakresu od {min} do {max}: **{rollResult}**"
     }
+
   }
 }
