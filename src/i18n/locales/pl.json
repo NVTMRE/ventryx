@@ -38,6 +38,21 @@
       "description": "Pobierz losowy cytat motywacyjny lub zabawny",
       "title": "Losowy cytat",
       "error": "Nie udało się pobrać cytatu, spróbuj ponownie później."
+    },
+    "weather": {
+      "description": "Pokaż pogodę po kodzie pocztowym",
+      "options": {
+        "postalcode": "Kod pocztowy (np. 00-001)"
+      },
+      "response": {
+        "title": "Informacje o pogodzie",
+        "temperature": "Temperatura",
+        "feels_like": "Odczuwalna",
+        "weather": "Pogoda",
+        "humidity": "Wilgotność",
+        "wind_speed": "Prędkość wiatru"
+      },
+      "error": "Nie udało się pobrać danych pogodowych. Sprawdź kod pocztowy."
     }
   }
 }

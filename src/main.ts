@@ -9,6 +9,8 @@ async function main() {
   const token = process.env.TOKEN!;
   const clientId = process.env.CLIENT_ID!;
   const guildId = process.env.GUILD_ID; // może być undefined
+  const DEBUG = process.env.DEBUG === 'true';
+
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
 
   const commands: Collection<string, any> = await loadCommands();
@@ -22,19 +24,21 @@ async function main() {
     console.log('Registering slash commands...');
 
     if (guildId) {
-      // Register commands *guild-specific* (faster update, tylko na 1 serwerze)
       await rest.put(
         Routes.applicationGuildCommands(clientId, guildId),
         { body: commands.map(cmd => cmd.data.toJSON()) }
       );
       console.log(`Slash commands registered in guild ${guildId}`);
     } else {
-      // Register commands *globally* (może trwać do godziny, ale dostępne wszędzie)
       await rest.put(
         Routes.applicationCommands(clientId),
         { body: commands.map(cmd => cmd.data.toJSON()) }
       );
       console.log('Slash commands registered globally');
+    }
+
+    if (DEBUG) {
+      console.warn('🛠️ Debug mode is ENABLED.');
     }
   } catch (error) {
     console.error(error);

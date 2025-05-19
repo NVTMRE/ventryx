@@ -38,6 +38,21 @@
       "description": "Get a random motivational or funny quote",
       "title": "Random Quote",
       "error": "Could not fetch a quote right now, please try again later."
+    },
+    "weather": {
+      "description": "Show weather by postal code",
+      "options": {
+        "postalcode": "Postal code (e.g., 00-001)"
+      },
+      "response": {
+        "title": "Weather information",
+        "temperature": "Temperature",
+        "feels_like": "Feels like",
+        "weather": "Weather",
+        "humidity": "Humidity",
+        "wind_speed": "Wind speed"
+      },
+      "error": "Could not fetch weather data. Please check the postal code."
     }
   }
 }
