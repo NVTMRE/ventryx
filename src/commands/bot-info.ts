@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import {ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags} from 'discord.js';
 import { t } from '../i18n';
 import pkg from '../../package.json' assert { type: 'json' };
 import {embedColor} from "../config/embed-color";
@@ -23,5 +23,5 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .setColor(embedColor)
     .setTimestamp();
 
-  await interaction.reply({ embeds: [embed], ephemeral: true });
+  await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 }
