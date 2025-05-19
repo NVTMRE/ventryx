@@ -1,0 +1,51 @@
+# Bun
+bun.lockb
+bun.lock
+
+# Node.js
+node_modules/
+
+# TypeScript
+dist/
+build/
+*.tsbuildinfo
+
+# Env files
+.env.local
+.env.*.local
+
+# Drizzle ORM
+drizzle/
+drizzle.config.ts
+*.sqlite
+*.sqlite-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDEs/editors
+.vscode/
+.idea/
+*.sw?
+
+# Optional: test coverage
+coverage/
+
+# Optional: compiled docs/temp
+docs/
+temp/
+tmp/
+
+# Certificates, secrets
+*.pem
+*.key
+*.crt
