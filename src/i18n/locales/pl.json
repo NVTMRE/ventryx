@@ -25,6 +25,10 @@
         "version": "Wersja",
         "license": "Licencja"
       }
+    },
+    "meme": {
+      "description": "Pokaż losowego mema",
+      "error": "Nie udało się załadować mema. Spróbuj ponownie później."
     }
   }
 }

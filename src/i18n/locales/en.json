@@ -25,6 +25,10 @@
         "version": "Version",
         "license": "License"
       }
+    },
+    "meme": {
+      "description": "Show a random meme",
+      "error": "Couldn't load a meme at the moment. Please try again later."
     }
   }
 }
