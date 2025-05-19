@@ -29,6 +29,10 @@
     "meme": {
       "description": "Show a random meme",
       "error": "Couldn't load a meme at the moment. Please try again later."
+    },
+    "fact": {
+      "description": "Get a random interesting fact",
+      "error": "Could not fetch a fact at this time."
     }
   }
 }
