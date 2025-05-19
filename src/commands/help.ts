@@ -3,7 +3,7 @@ import {
   SlashCommandBuilder,
   PermissionsBitField,
   Client,
-  Collection,
+  Collection, MessageFlags,
 } from 'discord.js';
 import { t } from '../i18n';
 
@@ -63,7 +63,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     .join('\n');
 
   // Build reply content
-  let content = `📖 ${t('commands.help.response') || 'Available commands'}:\n\n`;
+  let content = `📖 ${t('commands.help.response') || 'Available commands'}\n\n`;
   if (userCommandsList) {
     content += `**User Commands:**\n${userCommandsList}\n\n`;
   }
@@ -74,6 +74,6 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   // Reply with the list, ephemeral so only user sees it
   await interaction.reply({
     content,
-    ephemeral: true,
+    flags: MessageFlags.Ephemeral,
   });
 }

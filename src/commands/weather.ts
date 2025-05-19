@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import {ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags} from 'discord.js';
 import fetch from 'node-fetch';
 import { t } from '../i18n';
 
@@ -27,7 +27,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     // This should never happen if loader filters correctly
     await interaction.reply({
       content: t('commands.weather.disabled') || 'Weather command is disabled because API key is missing.',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
@@ -63,12 +63,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setColor(process.env.EMBED_COLOR ? parseInt(process.env.EMBED_COLOR, 16) : 0x2f3136)
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   } catch (error) {
     console.error(error);
     await interaction.reply({
       content: t('commands.weather.error') || 'Could not fetch weather data. Please check the postal code.',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }

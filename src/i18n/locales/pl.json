@@ -53,7 +53,15 @@
         "humidity": "Wilgotność",
         "wind_speed": "Prędkość wiatru"
       },
-      "error": "Nie udało się pobrać danych pogodowych. Sprawdź kod pocztowy i kraj."
+      "error": "Nie udało się pobrać danych pogodowych. Sprawdź kod pocztowy."
+    },
+    "server_stats": {
+      "description": "Pokazuje statystyki serwera",
+      "embed_title": "Statystyki serwera ({server})",
+      "members": "Użytkownicy",
+      "channels": "Kanały",
+      "roles": "Role",
+      "error_no_guild": "Ta komenda działa tylko na serwerze."
     }
   }
 }

@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder } from 'discord.js';
+import {ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags} from 'discord.js';
 import fetch from 'node-fetch';
 import { t } from '../i18n';
 // @ts-ignore
@@ -33,12 +33,12 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setColor(embedColor)
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
   } catch (error) {
     console.error(error);
     await interaction.reply({
       content: t('commands.quote.error') || 'Could not fetch a quote right now, please try again later.',
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
   }
 }
