@@ -12,6 +12,13 @@ export const data = new SlashCommandBuilder()
       .setName('postalcode')
       .setDescription(t('commands.weather.options.postalcode'))
       .setRequired(true)
+  )
+  .addStringOption(option =>
+    option
+      .setName('country')
+      .setDescription(t('commands.weather.options.country'))
+      .setRequired(false)
+      .setMaxLength(2)
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
@@ -26,9 +33,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   }
 
   const postalCode = interaction.options.getString('postalcode', true);
+  const country = interaction.options.getString('country') || 'en';
 
   try {
-    const url = `https://api.openweathermap.org/data/2.5/weather?zip=${postalCode},PL&appid=${OPENWEATHER_API_KEY}&units=metric&lang=${process.env.LANG || 'en'}`;
+    const url = `https://api.openweathermap.org/data/2.5/weather?zip=${postalCode},${country}&appid=${OPENWEATHER_API_KEY}&units=metric&lang=${process.env.LANG || 'en'}`;
 
     if (DEBUG) console.debug(`[Weather DEBUG] Fetching URL: ${url}`);
 
