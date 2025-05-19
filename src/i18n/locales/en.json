@@ -33,6 +33,11 @@
     "fact": {
       "description": "Get a random interesting fact",
       "error": "Could not fetch a fact at this time."
+    },
+    "quote": {
+      "description": "Get a random motivational or funny quote",
+      "title": "Random Quote",
+      "error": "Could not fetch a quote right now, please try again later."
     }
   }
 }
