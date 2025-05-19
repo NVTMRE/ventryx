@@ -42,7 +42,8 @@
     "weather": {
       "description": "Pokaż pogodę po kodzie pocztowym",
       "options": {
-        "postalcode": "Kod pocztowy (np. 00-001)"
+        "postalcode": "Kod pocztowy (np. 00-001)",
+        "country": "Kod kraju (np. PL, US)"
       },
       "response": {
         "title": "Informacje o pogodzie",
