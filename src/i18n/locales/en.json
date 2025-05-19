@@ -1,0 +1,30 @@
+{
+  "commands": {
+    "help": {
+      "description": "Show all available commands",
+      "response": "Here is a list of all available commands:"
+    },
+    "ping": {
+      "description": "Check bot latency",
+      "response": "🏓 Message latency: {latency}ms\n📡 WebSocket: {websocket}ms"
+    },
+    "info": {
+      "description": "Show information about the bot",
+      "response": "I'm a simple bot created to help manage the server."
+    },
+    "uptime": {
+      "description": "Check how long the bot has been running",
+      "response": "Bot has been running for: {uptime}"
+    },
+    "botinfo": {
+      "description": "Show information about the bot",
+      "response": {
+        "description": "Ventryx Bot - your friendly server assistant",
+        "developer": "Developer",
+        "language": "Language",
+        "version": "Version",
+        "license": "License"
+      }
+    }
+  }
+}

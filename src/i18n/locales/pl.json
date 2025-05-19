@@ -1,0 +1,30 @@
+{
+  "commands": {
+    "help": {
+      "description": "Pokaż wszystkie dostępne komendy",
+      "response": "Oto lista wszystkich dostępnych komend:"
+    },
+    "ping": {
+      "description": "Sprawdź opóźnienie bota",
+      "response": "🏓 Opóźnienie wiadomości: {latency}ms\n📡 WebSocket: {websocket}ms"
+    },
+    "info": {
+      "description": "Pokaż informacje o bocie",
+      "response": "Jestem prostym botem stworzonym do zarządzania serwerem."
+    },
+    "uptime": {
+      "description": "Sprawdź czas działania bota",
+      "response": "Bot działa od: {uptime}"
+    },
+    "botinfo": {
+      "description": "Pokaż informacje o bocie",
+      "response": {
+        "description": "Ventryx Bot - twój przyjazny asystent serwera",
+        "developer": "Twórca",
+        "language": "Język",
+        "version": "Wersja",
+        "license": "Licencja"
+      }
+    }
+  }
+}
