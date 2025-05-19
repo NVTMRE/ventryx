@@ -20,7 +20,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       fact = translated.text;
     }
 
-    await interaction.reply({ content: `📢 ${fact}` });
+    await interaction.reply({ content: `📢 ${fact}`, ephemeral: true });
   } catch (error) {
     console.error('Fact fetch error:', error);
     await interaction.reply({

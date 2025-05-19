@@ -33,7 +33,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       .setColor(embedColor)
       .setTimestamp();
 
-    await interaction.reply({ embeds: [embed] });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   } catch (error) {
     console.error(error);
     await interaction.reply({
