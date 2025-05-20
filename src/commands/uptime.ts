@@ -1,5 +1,5 @@
 import {ChatInputCommandInteraction, MessageFlags, PermissionsBitField, SlashCommandBuilder} from 'discord.js';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 
 const startTime = Date.now(); // Save when the bot started
 

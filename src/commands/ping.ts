@@ -1,5 +1,5 @@
 import {ChatInputCommandInteraction, PermissionsBitField, SlashCommandBuilder} from 'discord.js';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 
 export const data = new SlashCommandBuilder()
   .setName('ping')

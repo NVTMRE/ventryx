@@ -1,5 +1,5 @@
 import {ChatInputCommandInteraction, MessageFlags, SlashCommandBuilder} from 'discord.js';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 // @ts-ignore
 import translate from 'translatte';
 

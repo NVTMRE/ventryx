@@ -7,3 +7,8 @@ export const reminders = pgTable('reminders', {
   remindAt: timestamp('remind_at', { withTimezone: true }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const autoroles = pgTable('autoroles', {
+  guildId: text('guild_id').primaryKey(),
+  roleId: text('role_id').notNull(),
+});

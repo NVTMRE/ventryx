@@ -1,5 +1,5 @@
 import {ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags} from 'discord.js';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 import pkg from '../../package.json' assert { type: 'json' };
 import {embedColor} from "../config/embed-color";
 

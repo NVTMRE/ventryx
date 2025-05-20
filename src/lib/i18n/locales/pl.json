@@ -103,6 +103,39 @@
         "permission_denied": "Nie masz uprawnień do anulowania tego przypomnienia.",
         "success": "Przypomnienie zostało anulowane."
       }
+    },
+    "autorole_set": {
+      "description": "Ustaw domyślną rolę dla nowych członków.",
+      "options": {
+        "role": "Rola do przypisania nowym członkom"
+      },
+      "success": "✅ Automatyczna rola została ustawiona na <@&{roleId}>.",
+      "error": "❌ Nie udało się ustawić automatycznej roli: {message}"
+    },
+    "autorole_disable": {
+      "description": "Wyłącz automatyczną rolę i usuń ją ze wszystkich członków",
+      "success": "✅ Automatyczna rola <@&{roleId}> została wyłączona i usunięta ze wszystkich członków.",
+      "no_autorole": "❌ Na tym serwerze nie ma ustawionej automatycznej roli.",
+      "error": "❌ Błąd podczas wyłączania automatycznej roli: {message}",
+      "errors": {
+        "missing_guild": "❌ Brak ID serwera lub obiektu serwera."
+      }
+    },
+    "autorole_show": {
+      "description": "Pokaż aktualnie ustawioną rolę automatyczną",
+      "notSet": "❌ Nie ustawiono żadnej roli automatycznej na tym serwerze.",
+      "success": "✅ Aktualnie ustawiona rola automatyczna to <@&{roleId}>."
+    },
+    "errors": {
+      "unexpected": "❌ Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
+    },
+    "events": {
+      "welcome": {
+        "message": "👋 Witaj <@{userId}> na serwerze **{guildName}**!"
+      },
+      "autorole": {
+        "assigned": "✅ Rola automatyczna została przypisana do <@{userId}>"
+      }
     }
   }
 }

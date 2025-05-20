@@ -1,6 +1,6 @@
 import {ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags} from 'discord.js';
 import fetch from 'node-fetch';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 // @ts-ignore
 import translate from 'translatte';
 import {embedColor} from "../config/embed-color";

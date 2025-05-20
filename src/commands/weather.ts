@@ -1,6 +1,6 @@
 import {ChatInputCommandInteraction, SlashCommandBuilder, EmbedBuilder, MessageFlags} from 'discord.js';
 import fetch from 'node-fetch';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 
 const DEBUG = process.env.DEBUG === 'true';
 
