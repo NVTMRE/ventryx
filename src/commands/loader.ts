@@ -27,9 +27,9 @@ export async function loadCommands(): Promise<Collection<string, Command>> {
   }
 
   // Log loaded commands info
-  console.log(`[Commands Loader] Loaded ${commands.size} commands:`);
+  process.env.DEBUG && console.log(`[Commands Loader] Loaded ${commands.size} commands:`);
   for (const commandName of commands.keys()) {
-    console.log(` - ${commandName}`);
+    process.env.DEBUG && console.log(` - ${commandName}`);
   }
 
   return commands;

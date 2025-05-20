@@ -20,8 +20,8 @@ export async function loadEvents(client: Client) {
   }
 
   // Log loaded events info
-  console.log(`[Events Loader] Loaded ${loadedEvents.length} events:`);
+  process.env.DEBUG && console.log(`[Events Loader] Loaded ${loadedEvents.length} events:`);
   for (const eventName of loadedEvents) {
-    console.log(` - ${eventName}`);
+    process.env.DEBUG && console.log(` - ${eventName}`);
   }
 }

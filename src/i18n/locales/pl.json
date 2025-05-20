@@ -76,6 +76,33 @@
       "description": "Rzut monetą",
       "heads": "Orzeł",
       "tails": "Reszka"
+    },
+    "remind": {
+      "description": "Ustaw przypomnienie",
+      "options": {
+        "time": "Za ile minut mam przypomnieć?",
+        "message": "Treść przypomnienia",
+        "user": "Użytkownik, któremu przypomnieć (opcjonalnie)"
+      },
+      "permission_denied": "Nie możesz ustawić przypomnienia innemu użytkownikowi.",
+      "confirmation": "Przypomnienie ustawione. Wiadomość zostanie wysłana za {minutes} minut do {user}.",
+      "you": "Ciebie",
+      "embed": {
+        "title": "⏰ Przypomnienie",
+        "footer": "Przypomnienie wysłane przez Ventryx"
+      },
+      "list": {
+        "description": "Pokaż listę przypomnień",
+        "empty": "Nie masz żadnych aktywnych przypomnień.",
+        "header": "Masz {count} aktywnych przypomnień:"
+      },
+      "cancel": {
+        "description": "Anuluj przypomnienie",
+        "option_id": "ID przypomnienia (z komendy /remind-list)",
+        "not_found": "Nie znaleziono przypomnienia.",
+        "permission_denied": "Nie masz uprawnień do anulowania tego przypomnienia.",
+        "success": "Przypomnienie zostało anulowane."
+      }
     }
   }
 }
