@@ -75,6 +75,34 @@
       "description": "Flip a coin",
       "heads": "Heads",
       "tails": "Tails"
+    },
+    "remind": {
+      "description": "Set a reminder",
+      "options": {
+        "time": "In how many minutes should I remind you?",
+        "message": "Reminder message content",
+        "user": "User to remind (optional)"
+      },
+      "permission_denied": "You are not allowed to set reminders for other users.",
+      "confirmation": "Reminder set. The message will be sent in {minutes} minutes to {user}.",
+      "you": "yourself",
+      "embed": {
+        "title": "⏰ Reminder",
+        "footer": "Reminder sent by Ventryx"
+      },
+      "list": {
+        "description": "Show reminder list",
+        "empty": "You have no active reminders.",
+        "header": "You have {count} active reminders:"
+      },
+      "cancel": {
+        "description": "Cancel a reminder",
+        "option_id": "Reminder ID (from /remind-list command)",
+        "not_found": "Reminder not found.",
+        "permission_denied": "You don't have permission to cancel this reminder.",
+        "success": "Reminder has been cancelled."
+      }
     }
+
   }
 }

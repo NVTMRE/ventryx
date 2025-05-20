@@ -24,7 +24,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   if (min > max) {
     await interaction.reply({
       content: t('commands.roll.error_min_greater_max'),
-      ephemeral: true,
+      flags: MessageFlags.Ephemeral,
     });
     return;
   }
