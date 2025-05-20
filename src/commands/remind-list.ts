@@ -1,7 +1,7 @@
 import {SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags} from 'discord.js';
-import { db } from '../db';
-import { reminders } from '../db/schema';
-import { t } from '../i18n';
+import { db } from '../lib/db';
+import { reminders } from '../lib/db/schema';
+import { t } from '../lib/i18n';
 import { eq } from 'drizzle-orm';
 
 export const data = new SlashCommandBuilder()

@@ -1,8 +1,8 @@
 import { Client, EmbedBuilder } from 'discord.js';
-import { db } from '../db';
-import { reminders } from '../db/schema';
+import { db } from '../lib/db';
+import { reminders } from '../lib/db/schema';
 import { lt, eq } from 'drizzle-orm';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 import {embedColor} from "../config/embed-color";
 
 if (process.env.DEBUG) {

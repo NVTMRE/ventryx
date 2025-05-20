@@ -5,7 +5,7 @@ import {
   Client,
   Collection, MessageFlags,
 } from 'discord.js';
-import { t } from '../i18n';
+import { t } from '../lib/i18n';
 
 /**
  * Slash command data for /help

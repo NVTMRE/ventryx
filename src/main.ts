@@ -12,7 +12,12 @@ async function main() {
   const guildId = process.env.GUILD_ID;
   const DEBUG = process.env.DEBUG === 'true';
 
-  const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+  const client = new Client({ intents: [
+      GatewayIntentBits.Guilds,
+      GatewayIntentBits.GuildMembers,
+      GatewayIntentBits.GuildMessages,
+      GatewayIntentBits.MessageContent,
+    ], });
   const commands: Collection<string, any> = await loadCommands();
   (client as any).commands = commands;
 

@@ -102,7 +102,39 @@
         "permission_denied": "You don't have permission to cancel this reminder.",
         "success": "Reminder has been cancelled."
       }
+    },
+    "autorole_set": {
+      "description": "Set the default role for new members.",
+      "options": {
+        "role": "Role to assign to new members"
+      },
+      "success": "✅ Autorole has been set to <@&{roleId}>.",
+      "error": "❌ Failed to set autorole: {message}"
+    },
+    "autorole_disable": {
+      "description": "Disable the autorole and remove it from all members",
+      "success": "✅ Autorole <@&{roleId}> disabled and removed from all members.",
+      "no_autorole": "❌ There is no autorole set for this server.",
+      "error": "❌ Error disabling autorole: {message}",
+      "errors": {
+        "missing_guild": "❌ Guild ID or guild object missing."
+      }
+    },
+    "autorole_show": {
+      "description": "Show the currently set autorole",
+      "notSet": "❌ No autorole is set for this server.",
+      "success": "✅ The current autorole is <@&{{roleId}}>."
+    },
+    "errors": {
+      "unexpected": "❌ An unexpected error occurred. Please try again later."
+    },
+    "events": {
+      "welcome": {
+        "message": "👋 Welcome <@{userId}> to **{guildName}**!"
+      },
+      "autorole": {
+        "assigned": "✅ Auto role has been assigned to <@{userId}>"
+      }
     }
-
   }
 }
