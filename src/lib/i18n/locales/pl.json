@@ -142,18 +142,22 @@
         "not_found": "Tej roli nie ma w panelu autoroli."
       }
     },
-    "errors": {
-      "missing_guild": "Ta komenda może być używana tylko na serwerze.",
-      "invalid_channel": "Ta komenda musi być użyta na kanale tekstowym.",
-      "unexpected": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
+    "joke": {
+      "description": "Opowiada losowy żart",
+      "error": "Wystąpił błąd podczas pobierania żartu. Spróbuj ponownie później."
+    }
+  },
+  "errors": {
+    "missing_guild": "Ta komenda może być używana tylko na serwerze.",
+    "invalid_channel": "Ta komenda musi być użyta na kanale tekstowym.",
+    "unexpected": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
+  },
+  "events": {
+    "welcome": {
+      "message": "👋 Witaj <@{userId}> na serwerze **{guildName}**!"
     },
-    "events": {
-      "welcome": {
-        "message": "👋 Witaj <@{userId}> na serwerze **{guildName}**!"
-      },
-      "autorole": {
-        "assigned": "✅ Rola automatyczna została przypisana do <@{userId}>"
-      }
+    "autorole": {
+      "assigned": "✅ Rola automatyczna została przypisana do <@{userId}>"
     }
   }
 }
