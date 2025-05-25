@@ -1,8 +1,10 @@
 {
   "commands": {
     "help": {
-      "description": "Pokaż wszystkie dostępne komendy",
-      "response": "Oto lista wszystkich dostępnych komend:"
+      "description": "Pokaż dostępne komendy",
+      "response": "Dostępne komendy",
+      "userCommands": "Komendy użytkownika",
+      "adminCommands": "Komendy administratora"
     },
     "ping": {
       "description": "Sprawdź opóźnienie bota",
@@ -104,30 +106,46 @@
         "success": "Przypomnienie zostało anulowane."
       }
     },
-    "autorole_set": {
-      "description": "Ustaw domyślną rolę dla nowych członków.",
-      "options": {
-        "role": "Rola do przypisania nowym członkom"
+    "autorole": {
+      "description": "Zarządzaj ustawieniami autoroli",
+      "set": {
+        "description": "Ustaw rolę przyznawaną nowym członkom",
+        "option_role": "Rola do automatycznego przypisania",
+        "success": "Pomyślnie ustawiono autorolę: <@&{roleId}>",
+        "error": "Wystąpił błąd podczas ustawiania autoroli: {message}"
       },
-      "success": "✅ Automatyczna rola została ustawiona na <@&{roleId}>.",
-      "error": "❌ Nie udało się ustawić automatycznej roli: {message}"
-    },
-    "autorole_disable": {
-      "description": "Wyłącz automatyczną rolę i usuń ją ze wszystkich członków",
-      "success": "✅ Automatyczna rola <@&{roleId}> została wyłączona i usunięta ze wszystkich członków.",
-      "no_autorole": "❌ Na tym serwerze nie ma ustawionej automatycznej roli.",
-      "error": "❌ Błąd podczas wyłączania automatycznej roli: {message}",
-      "errors": {
-        "missing_guild": "❌ Brak ID serwera lub obiektu serwera."
+      "show": {
+        "description": "Pokaż aktualnie ustawioną autorolę",
+        "notSet": "Nie ustawiono żadnej autoroli.",
+        "success": "Obecnie ustawiona autorola to: <@&{roleId}>"
+      },
+      "panel": {
+        "description": "Zarządzaj wieloma autorolami przez panel",
+        "create": {
+          "description": "Dodaj nową rolę do panelu autoroli",
+          "option_role": "Rola do dodania",
+          "option_emoji": "Emoji reakcji",
+          "option_description": "Opis roli"
+        },
+        "list": {
+          "description": "Wyświetl wszystkie role z panelu autoroli",
+          "empty": "Panel autoroli jest pusty.",
+          "success": "Role w panelu autoroli:\n{roles}"
+        },
+        "remove": {
+          "description": "Usuń rolę z panelu autoroli",
+          "option_role": "Rola do usunięcia"
+        },
+        "add_success": "Dodano rolę <@&{roleId}> do panelu autoroli.",
+        "remove_success": "Usunięto rolę <@&{roleId}> z panelu autoroli.",
+        "already_exists": "Ta rola już znajduje się w panelu autoroli.",
+        "not_found": "Tej roli nie ma w panelu autoroli."
       }
     },
-    "autorole_show": {
-      "description": "Pokaż aktualnie ustawioną rolę automatyczną",
-      "notSet": "❌ Nie ustawiono żadnej roli automatycznej na tym serwerze.",
-      "success": "✅ Aktualnie ustawiona rola automatyczna to <@&{roleId}>."
-    },
     "errors": {
-      "unexpected": "❌ Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
+      "missing_guild": "Ta komenda może być używana tylko na serwerze.",
+      "invalid_channel": "Ta komenda musi być użyta na kanale tekstowym.",
+      "unexpected": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
     },
     "events": {
       "welcome": {
