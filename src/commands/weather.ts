@@ -17,7 +17,7 @@ export const data = new SlashCommandBuilder()
     option
       .setName('country')
       .setDescription(t('commands.weather.options.country'))
-      .setRequired(false)
+      .setRequired(true)
       .setMaxLength(2)
   );
 
