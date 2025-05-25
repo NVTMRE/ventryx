@@ -45,7 +45,7 @@
       "description": "Pokaż pogodę po kodzie pocztowym",
       "options": {
         "postalcode": "Kod pocztowy (np. 00-001)",
-        "country": "Kod kraju (np. PL, US)"
+        "country": "Kod kraju (np. US, PL), aby zawęzić wyszukiwanie miasta"
       },
       "response": {
         "title": "Informacje o pogodzie",
@@ -145,12 +145,33 @@
     "joke": {
       "description": "Opowiada losowy żart",
       "error": "Wystąpił błąd podczas pobierania żartu. Spróbuj ponownie później."
+    },
+    "role": {
+      "description": "Zarządzaj rolami",
+      "set": {
+        "description": "Ustaw rolę",
+        "option_role": "Rola do ustawienia",
+        "success": "Pomyślnie ustawiono rolę: <@&{roleId}>"
+      },
+      "add": {
+        "description": "Dodaj rolę do listy",
+        "option_role": "Rola do dodania",
+        "success": "Dodano rolę <@&{roleId}> do listy."
+      },
+      "remove": {
+        "description": "Usuń rolę z listy",
+        "option_role": "Rola do usunięcia",
+        "success": "Usunięto rolę <@&{roleId}> z listy."
+      },
+      "error_no_permission": "Nie masz uprawnień administratora, aby użyć tej komendy.",
+      "error_unknown_subcommand": "Nieznana subkomenda.",
+      "error_generic": "Wystąpił błąd podczas wykonywania komendy."
+    },
+    "errors": {
+      "missing_guild": "Ta komenda może być używana tylko na serwerze.",
+      "invalid_channel": "Ta komenda musi być użyta na kanale tekstowym.",
+      "unexpected": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
     }
-  },
-  "errors": {
-    "missing_guild": "Ta komenda może być używana tylko na serwerze.",
-    "invalid_channel": "Ta komenda musi być użyta na kanale tekstowym.",
-    "unexpected": "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później."
   },
   "events": {
     "welcome": {

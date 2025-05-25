@@ -44,7 +44,8 @@
     "weather": {
       "description": "Show weather by postal code",
       "options": {
-        "postalcode": "Postal code (e.g., 00-001)"
+        "postalcode": "Postal code (e.g., 00-001)",
+        "country": "Country code (e.g., US, PL) to narrow down the city search"
       },
       "response": {
         "title": "Weather information",
@@ -145,18 +146,39 @@
       "description": "Tells you a random joke",
       "error": "Something went wrong while fetching a joke. Please try again later."
     },
+    "role": {
+      "description": "Manage roles",
+      "set": {
+        "description": "Set the main role",
+        "option_role": "Role to set",
+        "success": "Successfully set the main role: <@&{roleId}>"
+      },
+      "add": {
+        "description": "Add a role to the list",
+        "option_role": "Role to add",
+        "success": "Added role <@&{roleId}> to the list."
+      },
+      "remove": {
+        "description": "Remove a role from the list",
+        "option_role": "Role to remove",
+        "success": "Removed role <@&{roleId}> from the list."
+      },
+      "error_no_permission": "You do not have administrator permissions to use this command.",
+      "error_unknown_subcommand": "Unknown subcommand.",
+      "error_generic": "An error occurred while executing the command."
+    },
     "errors": {
       "missing_guild": "This command can only be used in a server.",
       "invalid_channel": "This command must be used in a text channel.",
       "unexpected": "An unexpected error occurred. Please try again later."
+    }
+  },
+  "events": {
+    "welcome": {
+      "message": "👋 Welcome <@{userId}> to **{guildName}**!"
     },
-    "events": {
-      "welcome": {
-        "message": "👋 Welcome <@{userId}> to **{guildName}**!"
-      },
-      "autorole": {
-        "assigned": "✅ Auto role has been assigned to <@{userId}>"
-      }
+    "autorole": {
+      "assigned": "✅ Auto role has been assigned to <@{userId}>"
     }
   }
 }
