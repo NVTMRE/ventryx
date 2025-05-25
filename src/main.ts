@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { Client, GatewayIntentBits, REST, Routes, Collection } from 'discord.js';
+import {Client, GatewayIntentBits, REST, Routes, Collection, Partials} from 'discord.js';
 import { loadCommands } from './commands/loader';
 import { loadEvents } from './events/loader';
 import { loadWorkers } from './workers/loader';
@@ -17,7 +17,10 @@ async function main() {
       GatewayIntentBits.GuildMembers,
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.MessageContent,
-    ], });
+      GatewayIntentBits.GuildMessageReactions,
+    ],
+    partials: [Partials.Channel, Partials.Message, Partials.Reaction, Partials.User, Partials.GuildMember],
+  });
   const commands: Collection<string, any> = await loadCommands();
   (client as any).commands = commands;
 

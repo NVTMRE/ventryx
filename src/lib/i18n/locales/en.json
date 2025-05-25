@@ -1,8 +1,10 @@
 {
   "commands": {
     "help": {
-      "description": "Show all available commands",
-      "response": "Here is a list of all available commands:"
+      "description": "Show available commands",
+      "response": "Available commands",
+      "userCommands": "User Commands",
+      "adminCommands": "Admin Commands"
     },
     "ping": {
       "description": "Check bot latency",
@@ -103,30 +105,46 @@
         "success": "Reminder has been cancelled."
       }
     },
-    "autorole_set": {
-      "description": "Set the default role for new members.",
-      "options": {
-        "role": "Role to assign to new members"
+    "autorole": {
+      "description": "Manage autorole settings",
+      "set": {
+        "description": "Set a role assigned to new members",
+        "option_role": "Role to be automatically assigned",
+        "success": "Successfully set autorole: <@&{roleId}>",
+        "error": "An error occurred while setting autorole: {message}"
       },
-      "success": "✅ Autorole has been set to <@&{roleId}>.",
-      "error": "❌ Failed to set autorole: {message}"
-    },
-    "autorole_disable": {
-      "description": "Disable the autorole and remove it from all members",
-      "success": "✅ Autorole <@&{roleId}> disabled and removed from all members.",
-      "no_autorole": "❌ There is no autorole set for this server.",
-      "error": "❌ Error disabling autorole: {message}",
-      "errors": {
-        "missing_guild": "❌ Guild ID or guild object missing."
+      "show": {
+        "description": "Show the currently set autorole",
+        "notSet": "No autorole has been set.",
+        "success": "The currently set autorole is: <@&{roleId}>"
+      },
+      "panel": {
+        "description": "Manage multiple autoroles via a panel",
+        "create": {
+          "description": "Add a new role to the autorole panel",
+          "option_role": "Role to add",
+          "option_emoji": "Reaction emoji",
+          "option_description": "Role description"
+        },
+        "list": {
+          "description": "Show all roles in the autorole panel",
+          "empty": "The autorole panel is empty.",
+          "success": "Roles in the autorole panel:\n{roles}"
+        },
+        "remove": {
+          "description": "Remove a role from the autorole panel",
+          "option_role": "Role to remove"
+        },
+        "add_success": "Added role <@&{roleId}> to the autorole panel.",
+        "remove_success": "Removed role <@&{roleId}> from the autorole panel.",
+        "already_exists": "This role is already in the autorole panel.",
+        "not_found": "This role is not in the autorole panel."
       }
     },
-    "autorole_show": {
-      "description": "Show the currently set autorole",
-      "notSet": "❌ No autorole is set for this server.",
-      "success": "✅ The current autorole is <@&{{roleId}}>."
-    },
     "errors": {
-      "unexpected": "❌ An unexpected error occurred. Please try again later."
+      "missing_guild": "This command can only be used in a server.",
+      "invalid_channel": "This command must be used in a text channel.",
+      "unexpected": "An unexpected error occurred. Please try again later."
     },
     "events": {
       "welcome": {

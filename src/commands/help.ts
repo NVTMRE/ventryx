@@ -48,7 +48,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const userCommandsList = userCommands
     .map(cmd => {
       const name = cmd.data.name;
-      const description = t(`commands.${name}.description`) || cmd.data.description;
+      const description = t(`commands.${name.replace(/-/g, '.')}.description`) || cmd.data.description;
       return `**/${name}** — ${description}`;
     })
     .join('\n');
@@ -57,7 +57,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   const adminCommandsList = adminCommands
     .map(cmd => {
       const name = cmd.data.name;
-      const description = t(`commands.${name}.description`) || cmd.data.description;
+      const description = t(`commands.${name.replace(/-/g, '.')}.description`) || cmd.data.description;
       return `**/${name}** — ${description}`;
     })
     .join('\n');
@@ -71,7 +71,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     content += `**Admin Commands:**\n${adminCommandsList}\n\n`;
   }
 
-  // Reply with the list, ephemeral so only user sees it
+  // Reply with the list, ephemeral so only the user sees it
   await interaction.reply({
     content,
     flags: MessageFlags.Ephemeral,
