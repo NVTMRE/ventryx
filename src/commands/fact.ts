@@ -15,7 +15,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const data = await res.json();
     let fact = data.text;
 
-    if (locale === 'pl') {
+    if (locale !== 'en-US') {
       const translated = await translate(fact, { to: locale });
       fact = translated.text;
     }

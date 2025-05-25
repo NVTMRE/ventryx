@@ -141,6 +141,10 @@
         "not_found": "This role is not in the autorole panel."
       }
     },
+    "joke": {
+      "description": "Tells you a random joke",
+      "error": "Something went wrong while fetching a joke. Please try again later."
+    },
     "errors": {
       "missing_guild": "This command can only be used in a server.",
       "invalid_channel": "This command must be used in a text channel.",
