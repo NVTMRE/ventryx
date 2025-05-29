@@ -1,181 +1,267 @@
 {
   "commands": {
     "help": {
-      "description": "Show available commands",
-      "response": "Available commands",
-      "userCommands": "User Commands",
-      "adminCommands": "Admin Commands"
+      "description": "ℹ️ Show available commands",
+      "response": "📖 Available commands",
+      "userCommands": "👤 User Commands",
+      "adminCommands": "🛠️ Admin Commands"
     },
     "ping": {
-      "description": "Check bot latency",
+      "description": "📡 Check bot latency",
       "response": "🏓 Message latency: {latency}ms\n📡 WebSocket: {websocket}ms"
     },
     "info": {
-      "description": "Show information about the bot",
-      "response": "I'm a simple bot created to help manage the server."
+      "description": "🤖 Show information about the bot",
+      "response": "ℹ️ I'm a simple bot created to help manage the server."
     },
     "uptime": {
-      "description": "Check how long the bot has been running",
-      "response": "Bot has been running for: {uptime}"
+      "description": "⏱️ Check how long the bot has been running",
+      "response": "✅ Bot has been running for: {uptime}"
     },
     "botinfo": {
-      "description": "Show information about the bot",
+      "description": "🤖 Show information about the bot",
       "response": {
-        "description": "Ventryx Bot - your friendly server assistant",
-        "developer": "Developer",
-        "language": "Language",
-        "version": "Version",
-        "license": "License"
+        "description": "🤖 Ventryx Bot - your friendly server assistant ✨",
+        "developer": "🧑‍💻 Developer",
+        "language": "🗣️ Language",
+        "version": "🏷️ Version",
+        "license": "📜 License"
       }
     },
     "meme": {
-      "description": "Show a random meme",
-      "error": "Couldn't load a meme at the moment. Please try again later."
+      "description": "😂 Show a random meme",
+      "error": "😥 Couldn't load a meme at the moment. Please try again later."
     },
     "fact": {
-      "description": "Get a random interesting fact",
-      "error": "Could not fetch a fact at this time."
+      "description": "💡 Get a random interesting fact",
+      "error": "😥 Could not fetch a fact at this time."
     },
     "quote": {
-      "description": "Get a random motivational or funny quote",
-      "title": "Random Quote",
-      "error": "Could not fetch a quote right now, please try again later."
+      "description": "📜 Get a random motivational or funny quote",
+      "title": "🌟 Random Quote",
+      "error": "😥 Could not fetch a quote right now, please try again later."
     },
     "weather": {
-      "description": "Show weather by postal code",
+      "description": "☀️ Show weather by postal code",
       "options": {
         "postalcode": "Postal code (e.g., 00-001)",
         "country": "Country code (e.g., US, PL) to narrow down the city search"
       },
       "response": {
-        "title": "Weather information",
+        "title": "🌦️ Weather information",
         "temperature": "Temperature",
         "feels_like": "Feels like",
         "weather": "Weather",
         "humidity": "Humidity",
         "wind_speed": "Wind speed"
       },
-      "error": "Could not fetch weather data. Please check the postal code."
+      "error": "😥 Could not fetch weather data. Please check the postal code."
     },
     "server_stats": {
-      "description": "Shows statistics about the server",
-      "embed_title": "Server Stats for {server}",
+      "description": "📊 Shows statistics about the server",
+      "embed_title": "📊 Server Stats for {server}",
       "members": "Members",
       "channels": "Channels",
       "roles": "Roles",
-      "error_no_guild": "This command can only be used in a server."
+      "error_no_guild": "⚠️ This command can only be used in a server."
     },
     "roll": {
-      "description": "Roll a random number between min and max",
+      "description": "🎲 Roll a random number between min and max",
       "options": {
         "min": "Minimum number (default 1)",
         "max": "Maximum number (default 100)"
       },
-      "error_min_greater_max": "Error: Minimum number cannot be greater than maximum.",
+      "error_min_greater_max": "❌ Error: Minimum number cannot be greater than maximum.",
       "response": "🎲 You rolled a number between {min} and {max}: **{rollResult}**"
     },
     "coin_flip": {
-      "description": "Flip a coin",
+      "description": "🪙 Flip a coin",
       "heads": "Heads",
       "tails": "Tails"
     },
     "remind": {
-      "description": "Set a reminder",
+      "description": "⏰ Set a reminder",
       "options": {
         "time": "In how many minutes should I remind you?",
         "message": "Reminder message content",
         "user": "User to remind (optional)"
       },
-      "permission_denied": "You are not allowed to set reminders for other users.",
-      "confirmation": "Reminder set. The message will be sent in {minutes} minutes to {user}.",
+      "permission_denied": "🚫 You are not allowed to set reminders for other users.",
+      "confirmation": "✅ Reminder set. The message will be sent in {minutes} minutes to {user}.",
       "you": "yourself",
       "embed": {
         "title": "⏰ Reminder",
-        "footer": "Reminder sent by Ventryx"
+        "footer": "🔔 Reminder sent by Ventryx"
       },
       "list": {
-        "description": "Show reminder list",
-        "empty": "You have no active reminders.",
-        "header": "You have {count} active reminders:"
+        "description": "📋 Show reminder list",
+        "empty": "📭 You have no active reminders.",
+        "header": "🗓️ You have {count} active reminders:"
       },
       "cancel": {
-        "description": "Cancel a reminder",
+        "description": "❌ Cancel a reminder",
         "option_id": "Reminder ID (from /remind-list command)",
-        "not_found": "Reminder not found.",
-        "permission_denied": "You don't have permission to cancel this reminder.",
-        "success": "Reminder has been cancelled."
+        "not_found": "❓ Reminder not found.",
+        "permission_denied": "🚫 You don't have permission to cancel this reminder.",
+        "success": "✅ Reminder has been cancelled."
       }
     },
     "autorole": {
-      "description": "Manage autorole settings",
+      "description": "⚙️ Manage autorole settings",
       "set": {
-        "description": "Set a role assigned to new members",
+        "description": "➕ Set a role assigned to new members",
         "option_role": "Role to be automatically assigned",
-        "success": "Successfully set autorole: <@&{roleId}>",
-        "error": "An error occurred while setting autorole: {message}"
+        "success": "✅ Successfully set autorole: <@&{roleId}>",
+        "error": "❌ An error occurred while setting autorole: {message}"
       },
       "show": {
-        "description": "Show the currently set autorole",
-        "notSet": "No autorole has been set.",
-        "success": "The currently set autorole is: <@&{roleId}>"
+        "description": "ℹ️ Show the currently set autorole",
+        "notSet": "🤔 No autorole has been set.",
+        "success": "✅ The currently set autorole is: <@&{roleId}>"
       },
       "panel": {
-        "description": "Manage multiple autoroles via a panel",
+        "description": "🛠️ Manage multiple autoroles via a panel",
         "create": {
-          "description": "Add a new role to the autorole panel",
+          "description": "➕ Add a new role to the autorole panel",
           "option_role": "Role to add",
           "option_emoji": "Reaction emoji",
           "option_description": "Role description"
         },
         "list": {
-          "description": "Show all roles in the autorole panel",
-          "empty": "The autorole panel is empty.",
-          "success": "Roles in the autorole panel:\n{roles}"
+          "description": "📋 Show all roles in the autorole panel",
+          "empty": "📭 The autorole panel is empty.",
+          "success": "📜 Roles in the autorole panel:\n{roles}"
         },
         "remove": {
-          "description": "Remove a role from the autorole panel",
+          "description": "➖ Remove a role from the autorole panel",
           "option_role": "Role to remove"
         },
-        "add_success": "Added role <@&{roleId}> to the autorole panel.",
-        "remove_success": "Removed role <@&{roleId}> from the autorole panel.",
-        "already_exists": "This role is already in the autorole panel.",
-        "not_found": "This role is not in the autorole panel."
+        "add_success": "✅ Added role <@&{roleId}> to the autorole panel.",
+        "remove_success": "✅ Removed role <@&{roleId}> from the autorole panel.",
+        "already_exists": "⚠️ This role is already in the autorole panel.",
+        "not_found": "❓ This role is not in the autorole panel."
       }
     },
     "joke": {
-      "description": "Tells you a random joke",
-      "error": "Something went wrong while fetching a joke. Please try again later."
+      "description": "😂 Tells you a random joke",
+      "error": "😥 Something went wrong while fetching a joke. Please try again later."
     },
     "role": {
-      "description": "Manage roles",
+      "description": "🛡️ Manage roles",
       "set": {
-        "description": "Set the main role",
+        "description": "🔧 Set the main role",
         "option_role": "Role to set",
-        "success": "Successfully set the main role: <@&{roleId}>"
+        "success": "✅ Successfully set the main role: <@&{roleId}>"
       },
       "add": {
-        "description": "Add a role to the list",
+        "description": "➕ Add a role to the list",
         "option_role": "Role to add",
-        "success": "Added role <@&{roleId}> to the list."
+        "success": "✅ Added role <@&{roleId}> to the list."
       },
       "remove": {
-        "description": "Remove a role from the list",
+        "description": "➖ Remove a role from the list",
         "option_role": "Role to remove",
-        "success": "Removed role <@&{roleId}> from the list."
+        "success": "✅ Removed role <@&{roleId}> from the list."
       },
-      "error_no_permission": "You do not have administrator permissions to use this command.",
-      "error_unknown_subcommand": "Unknown subcommand.",
-      "error_generic": "An error occurred while executing the command."
+      "error_no_permission": "🚫 You do not have administrator permissions to use this command.",
+      "error_unknown_subcommand": "❓ Unknown subcommand.",
+      "error_generic": "❌ An error occurred while executing the command."
+    },
+    "ban": {
+      "description": "🚫 Ban a user from the server.",
+      "options": {
+        "user": "The user to ban.",
+        "reason": "Reason for the ban.",
+        "days": "Number of days of messages to delete (0-7)."
+      },
+      "no_reason": "ℹ️ No reason provided.",
+      "invalid_days": "⚠️ You must provide a number between 0 and 7.",
+      "cannot_ban": "😥 I cannot ban this user.",
+      "success": "✅ Successfully banned {user}.\n💬 Reason: {reason}",
+      "dm": {
+        "title": "🚫 You have been banned!",
+        "description": "You have been banned from **{guild}**.\n💬 Reason: **{reason}**"
+      }
+    },
+    "clear": {
+      "description": "🗑️ Delete a number of messages from the current channel.",
+      "options": {
+        "amount": "Number of messages to delete."
+      },
+      "success": "✅ Successfully deleted {amount} messages from {channel}."
+    },
+    "lock": {
+      "description": "🔒 Lock the current channel to prevent users from sending messages.",
+      "success": "🔒 Successfully locked {channel}."
+    },
+    "unlock": {
+      "description": "🔓 Unlock the current channel to allow users to send messages.",
+      "success": "🔓 Successfully unlocked {channel}."
+    },
+    "mute": {
+      "description": "🔇 Temporarily mute a user for 10 minutes.",
+      "options": {
+        "user": "Select the user to mute.",
+        "reason": "Specify the reason for the mute (optional)."
+      },
+      "no_reason": "ℹ️ No reason provided.",
+      "cannot_mute": "😥 I cannot mute this user.",
+      "success": "🔇 {user} has been muted for 10 minutes.\n💬 Reason: {reason}"
+    },
+    "slowmode": {
+      "description": "🐢 Set the slowmode duration for the current channel.",
+      "options": {
+        "seconds": "Specify the slowmode duration in seconds."
+      },
+      "success": "🐢 Slowmode has been set to {seconds} seconds in {channel}."
+    },
+    "unmute": {
+      "description": "🔊 Remove a timeout (unmute) from a user.",
+      "options": {
+        "user": "Select the user to unmute."
+      },
+      "success": "🔊 {user} has been unmuted.",
+      "cannot_unmute": "😥 I cannot unmute this user."
     },
     "errors": {
-      "missing_guild": "This command can only be used in a server.",
-      "invalid_channel": "This command must be used in a text channel.",
-      "unexpected": "An unexpected error occurred. Please try again later."
+      "missing_everyone": "❓ The @everyone role could not be found.",
+      "guild_not_found": "⚠️ This command must be run in a server.",
+      "user_not_found": "❓ User not found in this server.",
+      "missing_guild": "⚠️ This command can only be used in a server.",
+      "invalid_channel": "⚠️ This command must be used in a text channel.",
+      "unexpected": "❌ An unexpected error occurred. Please try again later."
     }
+  },
+  "announce": {
+    "description": "📢 Send a formatted announcement to a specified channel.",
+    "options": {
+      "channel": {
+        "description": "The channel to send the announcement to."
+      },
+      "message": {
+        "description": "The content of the announcement message."
+      },
+      "mention_role": {
+        "description": "A role to mention with the announcement (optional)."
+      },
+      "title": {
+        "description": "An optional title for the announcement embed."
+      },
+      "color": {
+        "description": "An optional color for the announcement embed (default: Blurple)."
+      }
+    },
+    "success": "✅ Announcement successfully sent to {channel}!",
+    "embed_footer": "📢 Announcement by {user}",
+    "error_invalid_channel_type": "❌ Please select a valid text channel for the announcement.",
+    "error_bot_missing_perms_in_channel": "❌ I don't have permission to send messages or embed links in {channel}. Please check my permissions."
   },
   "events": {
     "welcome": {
-      "message": "👋 Welcome <@{userId}> to **{guildName}**!"
+      "embed": {
+        "title": "👋 Welcome to {guildName}!",
+        "description": "🎉 <@{userId}> just joined the server."
+      }
     },
     "autorole": {
       "assigned": "✅ Auto role has been assigned to <@{userId}>"

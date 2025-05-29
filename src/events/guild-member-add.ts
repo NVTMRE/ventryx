@@ -1,8 +1,14 @@
-import { Client, GuildMember, PermissionsBitField } from 'discord.js';
+import {
+  Client,
+  GuildMember,
+  PermissionsBitField,
+  EmbedBuilder,
+} from 'discord.js';
 import { db } from '../lib/db';
 import { autoroles } from '../lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { t } from '../lib/i18n';
+import {embedColor} from "../config/embed-color";
 
 export function register(client: Client) {
   console.log('[Event] guildMemberAdd listener registered');
@@ -14,20 +20,23 @@ export function register(client: Client) {
 
     const systemChannel = guild.systemChannel;
     if (
-      systemChannel &&
-      systemChannel.viewable &&
-      systemChannel.permissionsFor(guild.members.me!)?.has(PermissionsBitField.Flags.SendMessages)
+        systemChannel &&
+        systemChannel.viewable &&
+        systemChannel.permissionsFor(guild.members.me!)?.has(PermissionsBitField.Flags.SendMessages)
     ) {
       try {
-        await systemChannel.send(
-          t('events.welcome.message', {
-            userId: user.id,
-            guildName: guild.name,
-          })
-        );
-        process.env.DEBUG && console.log(`[Welcome] Message sent in #${systemChannel.name}`);
+        const embed = new EmbedBuilder()
+            .setTitle(t('events.welcome.embed.title', { guildName: guild.name }))
+            .setDescription(t('events.welcome.embed.description', { userId: user.id }))
+            .setColor(embedColor)
+            .setThumbnail(user.avatarURL())
+            .setTimestamp();
+
+        await systemChannel.send({ embeds: [embed] });
+
+        process.env.DEBUG && console.log(`[Welcome] Embed message sent in #${systemChannel.name}`);
       } catch (err) {
-        console.error(`[Welcome] Failed to send message:`, err);
+        console.error(`[Welcome] Failed to send embed message:`, err);
       }
     } else {
       process.env.DEBUG && console.log('[Welcome] System channel unavailable or no permission.');
