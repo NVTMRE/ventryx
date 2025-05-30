@@ -9,6 +9,7 @@
   "license": "MIT",
   "scripts": {
     "start": "bun run src/main.ts",
+    "clear-commands": "tsx src/clear-commands.ts",
     "dev": "nodemon --watch src --ext ts --exec \"bun run src/main.ts\""
   },
   "devDependencies": {
