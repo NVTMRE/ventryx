@@ -1,0 +1,40 @@
+{
+  "name": "ventryx",
+  "version": "1.0.0",
+  "description": "Discord bot project by Ksawier Malkiewicz",
+  "main": "src/main.ts",
+  "type": "module",
+  "private": true,
+  "author": "Ksawier Malkiewicz",
+  "license": "MIT",
+  "scripts": {
+    "start": "bun run src/main.ts",
+    "clear-commands": "tsx src/clear-commands.ts",
+    "dev": "nodemon --watch src --ext ts --exec \"bun run src/main.ts\""
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/pg": "^8.15.2",
+    "drizzle-kit": "^0.31.1",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@discordjs/rest": "^2.5.0",
+    "date-fns": "^4.1.0",
+    "discord-api-types": "^0.38.8",
+    "discord.js": "^14.19.3",
+    "dotenv": "^16.5.0",
+    "drizzle-orm": "^0.43.1",
+    "node-fetch": "^3.3.2",
+    "pg": "^8.16.0",
+    "postgres": "^3.4.5",
+    "translatte": "^3.0.1",
+    "uuid": "^11.1.0"
+  }
+}
