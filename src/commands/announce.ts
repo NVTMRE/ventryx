@@ -15,7 +15,7 @@ import { embedColor as defaultEmbedColorHex } from "../config/embed-color";
 
 export const data = new SlashCommandBuilder()
     .setName('announce')
-    .setDescription(t('commands.announce.description'))
+    .setDescription(t('commands.announce.description')) // This t() call happens at command registration
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .addChannelOption(option =>
         option.setName('channel')
@@ -61,16 +61,17 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         });
     }
 
-    const targetChannel = interaction.options.getChannel('channel', true) as TextChannel;
+    const targetChannel = interaction.options.getChannel('channel', true) as TextChannel; // Stays as TextChannel
     const messageContent = interaction.options.getString('message', true);
     const mentionRole = interaction.options.getRole('mention_role') as Role | null;
     const title = interaction.options.getString('title');
-    const colorSelection = interaction.options.getString('color'); // Can be 'CONFIG_DEFAULT' or a numeric string
+    const colorSelection = interaction.options.getString('color');
 
-    // You can log the imported default color for debugging if needed:
-    // console.log(`[AnnounceCommand] Imported defaultEmbedColorHex: "${defaultEmbedColorHex}"`);
+    // Debugging the imported default color
+    // process.env.DEBUG && console.log(`[AnnounceCommand] Imported defaultEmbedColorHex: "${defaultEmbedColorHex}" (Type: ${typeof defaultEmbedColorHex})`);
 
-    if (!targetChannel) {
+    // Check if targetChannel is indeed a TextChannel (even though addChannelTypes should filter)
+    if (!targetChannel) { // Changed this condition
         return interaction.reply({
             content: t('commands.announce.error_invalid_channel_type'),
             flags: MessageFlags.Ephemeral,
@@ -85,70 +86,62 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         });
     }
 
+    const footerText = t('commands.announce.embed_footer', { user: interaction.user.tag });
+    // process.env.DEBUG && console.log(`[AnnounceCommand] Resolved footer text: "${footerText}"`);
+
     const announcementEmbed = new EmbedBuilder()
         .setDescription(messageContent)
         .setTimestamp()
-        .setFooter({ text: t('commands.announce.embed_footer', { user: interaction.user.tag }), iconURL: interaction.user.displayAvatarURL() });
+        .setFooter({ text: footerText, iconURL: interaction.user.displayAvatarURL() });
 
     if (title) {
         announcementEmbed.setTitle(title);
     }
 
     let finalEmbedColor: ColorResolvable;
-    let colorSourceInfo: string = "config default"; // For debugging
+    let colorSourceInfo: string = "config default";
 
-    // 1. Determine the color based on user selection or config default
     if (colorSelection && colorSelection !== 'CONFIG_DEFAULT') {
-        // User selected a specific color from the list
-        const parsedColor = parseInt(colorSelection, 10); // Values from choices are numeric strings
+        const parsedColor = parseInt(colorSelection, 10);
         if (!isNaN(parsedColor)) {
             finalEmbedColor = parsedColor;
             colorSourceInfo = `user selection (${colorSelection})`;
         } else {
-            // This shouldn't happen if colorSelection comes from addChoices with numeric string values
             console.warn(`[AnnounceCommand] User selected color "${colorSelection}" is not a parsable number. Falling back to configured default.`);
-            // Attempt to use configured default as a fallback
             if (defaultEmbedColorHex) {
                 finalEmbedColor = `#${defaultEmbedColorHex}`;
                 colorSourceInfo = "config default (fallback from invalid user selection)";
             } else {
-                console.error(`[AnnounceCommand] Invalid defaultEmbedColorHex in config: "${defaultEmbedColorHex}" during fallback from invalid user selection. Must be 6-digit HEX. Defaulting to Blurple.`);
-                finalEmbedColor = Colors.Blurple; // Ultimate fallback
-                colorSourceInfo = "Discord Blurple (ultimate fallback after invalid user selection & invalid config)";
+                console.error(`[AnnounceCommand] Invalid defaultEmbedColorHex in config: "${defaultEmbedColorHex}" during fallback. Must be 6-digit HEX. Defaulting to Blurple.`);
+                finalEmbedColor = Colors.Blurple;
+                colorSourceInfo = "Discord Blurple (ultimate fallback)";
             }
         }
     } else {
-        // User selected "CONFIG_DEFAULT" or did not select a color (colorSelection is null)
-        // Prioritize the configured default color
         if (defaultEmbedColorHex) {
             finalEmbedColor = `#${defaultEmbedColorHex}`;
             // colorSourceInfo remains "config default"
         } else {
-            console.error(`[AnnounceCommand] Invalid defaultEmbedColorHex in config: "${defaultEmbedColorHex}". Must be 6-digit HEX. Defaulting to Blurple.`);
-            finalEmbedColor = Colors.Blurple; // Ultimate fallback
+            console.error(`[AnnounceCommand] Invalid defaultEmbedColorHex in config: "${defaultEmbedColorHex}". Defaulting to Blurple.`);
+            finalEmbedColor = Colors.Blurple;
             colorSourceInfo = "Discord Blurple (fallback from invalid config default)";
         }
     }
 
-    // For debugging purposes, you can uncomment this:
-    // console.log(`[AnnounceCommand] Final color to be set: ${finalEmbedColor} (Source: ${colorSourceInfo})`);
+    process.env.DEBUG && console.log(`[AnnounceCommand] Final color to be set: ${finalEmbedColor} (Source: ${colorSourceInfo})`);
 
     try {
         announcementEmbed.setColor(finalEmbedColor);
     } catch (e) {
         console.error(`[AnnounceCommand] Error setting color "${finalEmbedColor}" (Source: ${colorSourceInfo}):`, e);
-        // If setColor fails even after validation, use an ultimate fallback
         announcementEmbed.setColor(Colors.Blurple);
         console.warn(`[AnnounceCommand] Fallback to Colors.Blurple due to error in setColor.`);
     }
 
-
     try {
-        let messagePayload;
+        let messagePayload: { content?: string, embeds: EmbedBuilder[] } = { embeds: [announcementEmbed] };
         if (mentionRole) {
-            messagePayload = { content: `${mentionRole.toString()}`, embeds: [announcementEmbed] };
-        } else {
-            messagePayload = { embeds: [announcementEmbed] };
+            messagePayload.content = `${mentionRole.toString()}`;
         }
 
         await targetChannel.send(messagePayload);
