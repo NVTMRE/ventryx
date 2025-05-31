@@ -93,10 +93,18 @@ function getNestedValue(obj: any, key: string): string | undefined {
  * @param vars Optional variables to replace in the translation (e.g., {user}).
  * @returns The translated string, or the key itself if the translation is not found.
  */
-export function t(key: string, vars?: Record<string, string | number>): string {
+interface TranslationOptions {
+  defaultValue?: string;
+  [key: string]: any; // For other interpolation variables
+}
+
+export function t(key: string, options?: TranslationOptions | Record<string, string | number>): string {
   if (!isInitialized) {
-    console.warn(`[i18n] t() called before locales were initialized for key: "${key}". This may result in missing translations. Call initializeI18n() at application startup.`);
-    // In this scenario, without initialized locales, it will always return the key
+    console.warn(`[i18n] t() called before locales were initialized for key: "${key}". Call initializeI18n() at application startup.`);
+    // If options has a defaultValue, use it, otherwise return key
+    if (typeof options === 'object' && options !== null && 'defaultValue' in options && typeof options.defaultValue === 'string') {
+      return options.defaultValue;
+    }
     return key;
   }
 
@@ -109,33 +117,33 @@ export function t(key: string, vars?: Record<string, string | number>): string {
     text = getNestedValue(targetLangData, key);
   }
 
-  // If text not found in default language, try fallback language (if different)
   if (text === undefined && DEFAULT_LANGUAGE !== FALLBACK_LANGUAGE && fallbackLangData) {
-    // console.warn(`[i18n] Key "${key}" not found in default language "${DEFAULT_LANGUAGE}". Trying fallback "${FALLBACK_LANGUAGE}".`);
     text = getNestedValue(fallbackLangData, key);
   }
 
-  // If still not found, use the key itself
+  // If still not found, use defaultValue from options if provided, otherwise the key
   if (text === undefined) {
-    // console.warn(`[i18n] Translation missing for key: "${key}". Defaulting to key.`);
-    text = key;
+    if (typeof options === 'object' && options !== null && 'defaultValue' in options && typeof options.defaultValue === 'string') {
+      console.warn(`[i18n] Translation missing for key: "${key}". Using provided defaultValue.`);
+      text = options.defaultValue;
+    } else {
+      console.warn(`[i18n] Translation missing for key: "${key}". Defaulting to key.`);
+      text = key;
+    }
   }
 
-  if (vars) {
-    for (const [variableKey, value] of Object.entries(vars)) {
-      // Ensure value is a string for replaceAll
+  // Interpolation (handle if 'options' is for defaultValue or for vars)
+   // Check if options is not just for defaultValue
+  const varsForInterpolation = (typeof options === 'object' && options !== null && !('defaultValue' in options))
+      ? options as Record<string, string | number>
+      : (typeof options === 'object' && options !== null && Object.keys(options).length > 1)
+          ? options as Record<string, string | number> // has defaultValue AND other vars
+          : undefined;
+  if (varsForInterpolation) {
+    for (const [variableKey, value] of Object.entries(varsForInterpolation)) {
+      if (variableKey === 'defaultValue') continue; // Skip defaultValue itself for interpolation
       text = text.replaceAll(`{${variableKey}}`, String(value));
     }
   }
-  return text || key; // Always return a string
+  return text || key;
 }
-
-// Optional: function to change language (would require resetting DEFAULT_LANGUAGE and potentially reprocessing)
-// export function setLanguage(newLanguage: string) {
-//     if (locales[newLanguage]) {
-//         DEFAULT_LANGUAGE = newLanguage; // This needs to be handled carefully if DEFAULT_LANGUAGE is const
-//         console.log(`[i18n] Language changed to: ${newLanguage}`);
-//     } else {
-//         console.warn(`[i18n] Cannot change language to "${newLanguage}" as it was not loaded.`);
-//     }
-// }

@@ -7,7 +7,8 @@ import {
     MessageFlags,
     EmbedBuilder,
     Colors,
-    ColorResolvable
+    ColorResolvable,
+    Attachment // Needed for image attachments
 } from 'discord.js';
 import { t } from '../lib/i18n'; // Your i18n function
 // Assuming embedColor is a 6-digit HEX string (without '#') from your config
@@ -41,17 +42,22 @@ export const data = new SlashCommandBuilder()
             .setDescription(t('commands.announce.options.color.description'))
             .setRequired(false)
             .addChoices(
-                { name: 'Default (from config)', value: 'CONFIG_DEFAULT' },
-                { name: 'Red', value: Colors.Red.toString() },
-                { name: 'Green', value: Colors.Green.toString() },
-                { name: 'Yellow', value: Colors.Yellow.toString() },
-                { name: 'Blue (Discord Blue)', value: Colors.Blue.toString() },
-                { name: 'Blurple (Discord Blurple)', value: Colors.Blurple.toString() },
-                { name: 'Purple', value: Colors.Purple.toString() },
-                { name: 'Gold', value: Colors.Gold.toString() },
-                { name: 'Orange', value: Colors.Orange.toString() },
-                { name: 'White', value: Colors.White.toString() }
-            ));
+                { name: t('commands.announce.options.color.choices.config_default'), value: 'CONFIG_DEFAULT' },
+                { name: t('commands.announce.options.color.choices.red'), value: Colors.Red.toString() },
+                { name: t('commands.announce.options.color.choices.green'), value: Colors.Green.toString() },
+                { name: t('commands.announce.options.color.choices.yellow'), value: Colors.Yellow.toString() },
+                { name: t('commands.announce.options.color.choices.blue'), value: Colors.Blue.toString() },
+                { name: t('commands.announce.options.color.choices.blurple'), value: Colors.Blurple.toString() },
+                { name: t('commands.announce.options.color.choices.purple'), value: Colors.Purple.toString() },
+                { name: t('commands.announce.options.color.choices.gold'), value: Colors.Gold.toString() },
+                { name: t('commands.announce.options.color.choices.orange'), value: Colors.Orange.toString() },
+                { name: t('commands.announce.options.color.choices.white'), value: Colors.White.toString() }
+            ))
+    .addAttachmentOption(option => // New option for image
+        option.setName('image')
+            .setDescription(t('commands.announce.options.image.description'))
+            .setRequired(false)
+    );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
     if (!interaction.guild) {
@@ -62,15 +68,19 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     }
 
     const targetChannel = interaction.options.getChannel('channel', true) as TextChannel;
-    const messageContent = interaction.options.getString('message', true);
+    const rawMessageContent = interaction.options.getString('message', true);
     const mentionRole = interaction.options.getRole('mention_role') as Role | null;
     const title = interaction.options.getString('title');
-    const colorSelection = interaction.options.getString('color'); // Can be 'CONFIG_DEFAULT' or a numeric string
+    const colorSelection = interaction.options.getString('color');
+    const imageAttachment = interaction.options.getAttachment('image') as Attachment | null; // Get the image attachment
+
+    // Replace literal '\\n' with actual newline character '\n'
+    const messageContent = rawMessageContent.replace(/\\n/g, '\n');
 
     // You can log the imported default color for debugging if needed:
-    // console.log(`[AnnounceCommand] Imported defaultEmbedColorHex: "${defaultEmbedColorHex}"`);
+    console.log(`[AnnounceCommand] Imported defaultEmbedColorHex: "${defaultEmbedColorHex}"`);
 
-    if (!targetChannel) {
+    if (!targetChannel) { // Should not happen due to .setRequired(true) and addChannelTypes, but good for type safety
         return interaction.reply({
             content: t('commands.announce.error_invalid_channel_type'),
             flags: MessageFlags.Ephemeral,
@@ -88,44 +98,47 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const announcementEmbed = new EmbedBuilder()
         .setDescription(messageContent)
         .setTimestamp()
-        .setFooter({ text: t('commands.announce.embed_footer', { user: interaction.user.tag }), iconURL: interaction.user.displayAvatarURL() });
+        .setFooter({ text: interaction.user.tag, iconURL: interaction.user.displayAvatarURL() });
 
     if (title) {
         announcementEmbed.setTitle(title);
     }
 
+    if (imageAttachment) { // Set the image in the embed if provided
+        // Optional: Add a check for image content type if desired
+        // if (imageAttachment.contentType?.startsWith('image/')) {
+        announcementEmbed.setImage(imageAttachment.url);
+        // } else {
+        //     console.warn(`[AnnounceCommand] User provided an attachment that is not an image: ${imageAttachment.contentType}`);
+        //     // Optionally reply to the user that the attachment was not an image
+        // }
+    }
+
     let finalEmbedColor: ColorResolvable;
     let colorSourceInfo: string = "config default"; // For debugging
 
-    // 1. Determine the color based on user selection or config default
     if (colorSelection && colorSelection !== 'CONFIG_DEFAULT') {
-        // User selected a specific color from the list
-        const parsedColor = parseInt(colorSelection, 10); // Values from choices are numeric strings
+        const parsedColor = parseInt(colorSelection, 10);
         if (!isNaN(parsedColor)) {
             finalEmbedColor = parsedColor;
             colorSourceInfo = `user selection (${colorSelection})`;
         } else {
-            // This shouldn't happen if colorSelection comes from addChoices with numeric string values
             console.warn(`[AnnounceCommand] User selected color "${colorSelection}" is not a parsable number. Falling back to configured default.`);
-            // Attempt to use configured default as a fallback
             if (defaultEmbedColorHex) {
                 finalEmbedColor = `#${defaultEmbedColorHex}`;
                 colorSourceInfo = "config default (fallback from invalid user selection)";
             } else {
                 console.error(`[AnnounceCommand] Invalid defaultEmbedColorHex in config: "${defaultEmbedColorHex}" during fallback from invalid user selection. Must be 6-digit HEX. Defaulting to Blurple.`);
-                finalEmbedColor = Colors.Blurple; // Ultimate fallback
+                finalEmbedColor = Colors.Blurple;
                 colorSourceInfo = "Discord Blurple (ultimate fallback after invalid user selection & invalid config)";
             }
         }
     } else {
-        // User selected "CONFIG_DEFAULT" or did not select a color (colorSelection is null)
-        // Prioritize the configured default color
         if (defaultEmbedColorHex) {
             finalEmbedColor = `#${defaultEmbedColorHex}`;
-            // colorSourceInfo remains "config default"
         } else {
             console.error(`[AnnounceCommand] Invalid defaultEmbedColorHex in config: "${defaultEmbedColorHex}". Must be 6-digit HEX. Defaulting to Blurple.`);
-            finalEmbedColor = Colors.Blurple; // Ultimate fallback
+            finalEmbedColor = Colors.Blurple;
             colorSourceInfo = "Discord Blurple (fallback from invalid config default)";
         }
     }
@@ -137,11 +150,9 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         announcementEmbed.setColor(finalEmbedColor);
     } catch (e) {
         console.error(`[AnnounceCommand] Error setting color "${finalEmbedColor}" (Source: ${colorSourceInfo}):`, e);
-        // If setColor fails even after validation, use an ultimate fallback
-        announcementEmbed.setColor(Colors.Blurple);
+        announcementEmbed.setColor(Colors.Blurple); // Ultimate fallback for color
         console.warn(`[AnnounceCommand] Fallback to Colors.Blurple due to error in setColor.`);
     }
-
 
     try {
         let messagePayload;
