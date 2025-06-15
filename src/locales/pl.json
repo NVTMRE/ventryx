@@ -1,0 +1,316 @@
+{
+  "commands": {
+    "help": {
+      "description": "ℹ️ Pokaż dostępne komendy",
+      "response": "📖 Dostępne komendy",
+      "userCommands": "👤 Komendy użytkownika",
+      "adminCommands": "🛠️ Komendy administracyjne"
+    },
+    "ping": {
+      "description": "📡 Sprawdź opóźnienie bota",
+      "response": "🏓 Opóźnienie wiadomości: {latency}ms\n📡 WebSocket: {websocket}ms"
+    },
+    "info": {
+      "description": "🤖 Pokaż informacje o bocie",
+      "response": "ℹ️ Jestem prostym botem stworzonym, by pomagać w zarządzaniu serwerem."
+    },
+    "uptime": {
+      "description": "⏱️ Sprawdź, jak długo bot jest uruchomiony",
+      "response": "✅ Bot jest uruchomiony od: {uptime}"
+    },
+    "botinfo": {
+      "description": "🤖 Pokaż informacje o bocie",
+      "response": {
+        "description": "🤖 Ventryx Bot - Twój przyjazny asystent serwera ✨",
+        "developer": "🧑‍💻 Deweloper",
+        "language": "🗣️ Język",
+        "version": "🏷️ Wersja",
+        "license": "📜 Licencja"
+      }
+    },
+    "meme": {
+      "description": "😂 Pokaż losowego mema",
+      "error": "😥 Nie udało się wczytać mema w tym momencie. Spróbuj ponownie później."
+    },
+    "fact": {
+      "description": "💡 Zdobądź losowy interesujący fakt",
+      "error": "😥 Nie udało się pobrać faktu w tym momencie."
+    },
+    "quote": {
+      "description": "📜 Zdobądź losowy motywacyjny lub zabawny cytat",
+      "title": "🌟 Losowy Cytat",
+      "error": "😥 Nie udało się pobrać cytatu w tym momencie, spróbuj ponownie później."
+    },
+    "weather": {
+      "description": "☀️ Pokaż pogodę dla kodu pocztowego",
+      "options": {
+        "postalcode": "Kod pocztowy (np. 00-001)",
+        "country": "Kod kraju (np. US, PL), aby zawęzić wyszukiwanie miasta"
+      },
+      "response": {
+        "title": "🌦️ Informacje o pogodzie",
+        "temperature": "Temperatura",
+        "feels_like": "Odczuwalna",
+        "weather": "Pogoda",
+        "humidity": "Wilgotność",
+        "wind_speed": "Prędkość wiatru"
+      },
+      "error": "😥 Nie udało się pobrać danych o pogodzie. Sprawdź kod pocztowy."
+    },
+    "server_stats": {
+      "description": "📊 Pokazuje statystyki dotyczące serwera",
+      "embed_title": "📊 Statystyki serwera dla {server}",
+      "members": "Członkowie",
+      "channels": "Kanały",
+      "roles": "Role",
+      "error_no_guild": "⚠️ Tej komendy można używać tylko na serwerze."
+    },
+    "roll": {
+      "description": "🎲 Rzuć losową liczbą z przedziału min i max",
+      "options": {
+        "min": "Minimalna liczba (domyślnie 1)",
+        "max": "Maksymalna liczba (domyślnie 100)"
+      },
+      "error_min_greater_max": "❌ Błąd: Minimalna liczba nie może być większa od maksymalnej.",
+      "response": "🎲 Wylosowałeś liczbę z przedziału {min} i {max}: **{rollResult}**"
+    },
+    "coin_flip": {
+      "description": "🪙 Rzuć monetą",
+      "heads": "Orzeł",
+      "tails": "Reszka"
+    },
+    "remind": {
+      "description": "⏰ Ustaw przypomnienie",
+      "options": {
+        "time": "Za ile minut mam Ci przypomnieć?",
+        "message": "Treść wiadomości przypomnienia",
+        "user": "Użytkownik do przypomnienia (opcjonalnie)"
+      },
+      "permission_denied": "🚫 Nie masz uprawnień do ustawiania przypomnień dla innych użytkowników.",
+      "confirmation": "✅ Przypomnienie ustawione. Wiadomość zostanie wysłana za {minutes} minut do {user}.",
+      "you": "Ciebie",
+      "embed": {
+        "title": "⏰ Przypomnienie",
+        "footer": "🔔 Przypomnienie wysłane przez Ventryx"
+      },
+      "list": {
+        "description": "📋 Pokaż listę przypomnień",
+        "empty": "📭 Nie masz aktywnych przypomnień.",
+        "header": "🗓️ Masz {count} aktywnych przypomnień:"
+      },
+      "cancel": {
+        "description": "❌ Anuluj przypomnienie",
+        "option_id": "ID przypomnienia (z komendy /remind-list)",
+        "not_found": "❓ Nie znaleziono przypomnienia.",
+        "permission_denied": "🚫 Nie masz uprawnień do anulowania tego przypomnienia.",
+        "success": "✅ Przypomnienie zostało anulowane."
+      }
+    },
+    "autorole": {
+      "description": "⚙️ Zarządzaj ustawieniami autorole",
+      "set": {
+        "description": "➕ Ustaw rolę przypisywaną nowym członkom",
+        "option_role": "Rola do automatycznego przypisania",
+        "success": "✅ Pomyślnie ustawiono autorole: <@&{roleId}>",
+        "error": "❌ Wystąpił błąd podczas ustawiania autorole: {message}"
+      },
+      "show": {
+        "description": "ℹ️ Pokaż aktualnie ustawioną autorole",
+        "notSet": "🤔 Nie ustawiono żadnej autorole.",
+        "success": "✅ Aktualnie ustawiona autorole to: <@&{roleId}>"
+      },
+      "panel": {
+        "description": "🛠️ Zarządzaj wieloma autorolami za pomocą panelu",
+        "create": {
+          "description": "➕ Dodaj nową rolę do panelu autorole",
+          "option_role": "Rola do dodania",
+          "option_emoji": "Emoji reakcji",
+          "option_description": "Opis roli",
+          "option_panel_id": "Unikalne ID dla nowego panelu autorole."
+        },
+        "list": {
+          "description": "📋 Pokaż wszystkie role w panelu autorole",
+          "empty": "📭 Panel autorole jest pusty.",
+          "success": "📜 Role w panelu autorole:\n{roles}",
+          "option_panel_id": "Opcjonalnie: ID konkretnego panelu do wyświetlenia."
+        },
+        "remove": {
+          "description": "➖ Usuń rolę z panelu autorole",
+          "option_role": "Rola do usunięcia",
+          "option_panel_id": "ID panelu autorole do usunięcia."
+        },
+        "add_success": "✅ Dodano rolę <@&{roleId}> do panelu autorole.",
+        "remove_success": "✅ Usunięto rolę <@&{roleId}> z panelu autorole.",
+        "already_exists": "⚠️ Ta rola już istnieje w panelu autorole.",
+        "not_found": "❓ Ta rola nie znajduje się w panelu autorole."
+      }
+    },
+    "joke": {
+      "description": "😂 Opowiada losowy żart",
+      "error": "😥 Coś poszło nie tak podczas pobierania żartu. Spróbuj ponownie później."
+    },
+    "role": {
+      "description": "🛡️ Zarządzaj rolami",
+      "set": {
+        "description": "🔧 Ustaw główną rolę",
+        "option_role": "Rola do ustawienia",
+        "option_user": "Użytkownik, któremu rola zostanie przypisana/usunięta.",
+        "success": "✅ Pomyślnie ustawiono główną rolę: <@&{roleId}>"
+      },
+      "add": {
+        "description": "➕ Dodaj rolę do listy",
+        "option_role": "Rola do dodania",
+        "success": "✅ Dodano rolę <@&{roleId}> do listy."
+      },
+      "remove": {
+        "description": "➖ Usuń rolę z listy",
+        "option_role": "Rola do usunięcia",
+        "success": "✅ Usunięto rolę <@&{roleId}> z listy."
+      },
+      "error_no_permission": "🚫 Nie masz uprawnień administratora, aby użyć tej komendy.",
+      "error_unknown_subcommand": "❓ Nieznana podkomenda.",
+      "error_generic": "❌ Wystąpił błąd podczas wykonywania komendy."
+    },
+    "ban": {
+      "description": "🚫 Zbanuj użytkownika na serwerze.",
+      "options": {
+        "user": "Użytkownik do zbanowania.",
+        "reason": "Powód bana.",
+        "days": "Liczba dni wiadomości do usunięcia (0-7)."
+      },
+      "no_reason": "ℹ️ Nie podano powodu.",
+      "invalid_days": "⚠️ Musisz podać liczbę od 0 do 7.",
+      "cannot_ban": "😥 Nie mogę zbanować tego użytkownika.",
+      "success": "✅ Pomyślnie zbanowano {user}.\n💬 Powód: {reason}",
+      "dm": {
+        "title": "🚫 Zostałeś zbanowany!",
+        "description": "Zostałeś zbanowany na serwerze **{guild}**.\n💬 Powód: **{reason}**"
+      }
+    },
+    "clear": {
+      "description": "🗑️ Usuń określoną liczbę wiadomości z bieżącego kanału.",
+      "options": {
+        "amount": "Liczba wiadomości do usunięcia."
+      },
+      "success": "✅ Pomyślnie usunięto {amount} wiadomości z {channel}."
+    },
+    "lock": {
+      "description": "🔒 Zablokuj bieżący kanał, aby uniemożliwić użytkownikom wysyłanie wiadomości.",
+      "success": "🔒 Pomyślnie zablokowano {channel}."
+    },
+    "unlock": {
+      "description": "🔓 Odblokuj bieżący kanał, aby umożliwić użytkownikom wysyłanie wiadomości.",
+      "success": "🔓 Pomyślnie odblokowano {channel}."
+    },
+    "mute": {
+      "description": "🔇 Tymczasowo wycisz użytkownika na 10 minut.",
+      "options": {
+        "user": "Wybierz użytkownika do wyciszenia.",
+        "reason": "Określ powód wyciszenia (opcjonalnie)."
+      },
+      "no_reason": "ℹ️ Nie podano powodu.",
+      "cannot_mute": "😥 Nie mogę wyciszyć tego użytkownika.",
+      "success": "🔇 {user} został wyciszony na 10 minut.\n💬 Powód: {reason}"
+    },
+    "slowmode": {
+      "description": "🐢 Ustaw czas trwania trybu powolnego dla bieżącego kanału.",
+      "options": {
+        "seconds": "Określ czas trwania trybu powolnego w sekundach."
+      },
+      "success": "🐢 Tryb powolny został ustawiony na {seconds} sekund w {channel}."
+    },
+    "unmute": {
+      "description": "🔊 Usuń wyciszenie (timeout) od użytkownika.",
+      "options": {
+        "user": "Wybierz użytkownika do odciszenia."
+      },
+      "success": "🔊 {user} został odciszony.",
+      "cannot_unmute": "😥 Nie mogę odciszyć tego użytkownika."
+    },
+    "kick": {
+      "description": "Wyrzuca członka z serwera.",
+      "options": {
+        "user": "Użytkownik do wyrzucenia.",
+        "reason": "Powód wyrzucenia."
+      }
+    },
+    "errors": {
+      "missing_everyone": "❓ Nie można znaleźć roli @everyone.",
+      "guild_not_found": "⚠️ Ta komenda musi być uruchomiona na serwerze.",
+      "user_not_found": "❓ Nie znaleziono użytkownika na tym serwerze.",
+      "missing_guild": "⚠️ Tej komendy można używać tylko na serwerze.",
+      "invalid_channel": "⚠️ Ta komenda musi być użyta na kanale tekstowym.",
+      "unexpected": "❌ Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.",
+      "env": {
+        "token_missing": "BŁĄD: Token bota (TOKEN) nie znaleziony w pliku .env. Zamykanie.",
+        "client_id_missing": "BŁĄD: ID Klienta (CLIENT_ID) nie znaleziony w pliku .env. Zamykanie."
+      },
+      "command_malformed": "Dane komendy \"{commandName}\" są niepoprawne lub brakuje metody toJSON.",
+      "command_registration_failed": "[Błąd Rejestracji Komend]",
+      "internal": {
+        "client_commands_missing": "Kolekcja komend klienta nie znaleziona na interaction.client.",
+        "reply_failed": "Nie udało się wysłać odpowiedzi na interakcję:"
+      },
+      "command_not_found_log": "Komenda {commandName} nie znaleziona w kolekcji.",
+      "command_not_found_user": "Nie znaleziono komendy '{commandName}'.",
+      "command_execution_error_log": "Błąd podczas wykonywania komendy {commandName}:",
+      "command_execution_failed_user": "Wystąpił błąd podczas wykonywania tej komendy!",
+      "unexpected_user": "Wystąpił nieoczekiwany błąd podczas przetwarzania Twojej komendy.",
+      "login_failed": "Nie udało się zalogować do Discorda:"
+    }
+  },
+  "announce": {
+    "description": "📢 Wyślij sformatowane ogłoszenie na określony kanał.",
+    "options": {
+      "channel": {
+        "description": "Kanał, na który ma zostać wysłane ogłoszenie."
+      },
+      "message": {
+        "description": "Treść wiadomości ogłoszenia."
+      },
+      "mention_role": {
+        "description": "Rola do oznaczenia wraz z ogłoszeniem (opcjonalnie)."
+      },
+      "title": {
+        "description": "Opcjonalny tytuł dla embeda ogłoszenia."
+      },
+      "color": {
+        "description": "Opcjonalny kolor dla embeda ogłoszenia (domyślnie: Blurple)."
+      }
+    },
+    "image": {
+      "description": "Obraz do umieszczenia w osadzonej treści ogłoszenia (opcjonalnie)."
+    },
+    "success": "✅ Ogłoszenie pomyślnie wysłane na {channel}!",
+    "embed_footer": "📢 Ogłoszenie od {user}",
+    "error_invalid_channel_type": "❌ Proszę wybrać prawidłowy kanał tekstowy dla ogłoszenia.",
+    "error_bot_missing_perms_in_channel": "❌ Nie mam uprawnień do wysyłania wiadomości lub osadzania linków na {channel}. Sprawdź moje uprawnienia."
+  },
+  "events": {
+    "welcome": {
+      "embed": {
+        "title": "👋 Witaj na {guildName}!",
+        "description": "🎉 <@{userId}> właśnie dołączył/a na serwer."
+      }
+    },
+    "autorole": {
+      "assigned": "✅ Autorola została przypisana do <@{userId}>"
+    }
+  },
+  "logs": {
+    "loading": {
+      "commands": "Ładowanie komend...",
+      "commands_done": "Załadowano {count} komend.",
+      "events": "Ładowanie zdarzeń...",
+      "workers": "Ładowanie workerów..."
+    },
+    "command_registration": {
+      "started": "Rozpoczęto odświeżanie komend aplikacji (/).",
+      "global_success": "Pomyślnie przeładowano globalne komendy aplikacji (/).",
+      "guild_success": "Pomyślnie przeładowano komendy aplikacji (/) dla serwera {guildId}."
+    },
+    "debug_mode_enabled": "🛠️ Tryb debugowania jest WŁĄCZONY.",
+    "bot_logging_in": "Logowanie do Discorda...",
+    "bot_logged_in_success": "Bot zalogowany jako {username}!"
+  }
+}

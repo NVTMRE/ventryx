@@ -125,16 +125,19 @@
           "description": "➕ Add a new role to the autorole panel",
           "option_role": "Role to add",
           "option_emoji": "Reaction emoji",
-          "option_description": "Role description"
+          "option_description": "Role description",
+          "option_panel_id": "The unique ID for the new autorole panel."
         },
         "list": {
           "description": "📋 Show all roles in the autorole panel",
           "empty": "📭 The autorole panel is empty.",
-          "success": "📜 Roles in the autorole panel:\n{roles}"
+          "success": "📜 Roles in the autorole panel:\n{roles}",
+          "option_panel_id": "Optional: The ID of a specific panel to display."
         },
         "remove": {
           "description": "➖ Remove a role from the autorole panel",
-          "option_role": "Role to remove"
+          "option_role": "Role to remove",
+          "option_panel_id": "The ID of the autorole panel to remove."
         },
         "add_success": "✅ Added role <@&{roleId}> to the autorole panel.",
         "remove_success": "✅ Removed role <@&{roleId}> from the autorole panel.",
@@ -151,6 +154,7 @@
       "set": {
         "description": "🔧 Set the main role",
         "option_role": "Role to set",
+        "option_user": "The user to whom the role will be assigned/removed.",
         "success": "✅ Successfully set the main role: <@&{roleId}>"
       },
       "add": {
@@ -223,13 +227,36 @@
       "success": "🔊 {user} has been unmuted.",
       "cannot_unmute": "😥 I cannot unmute this user."
     },
+    "kick": {
+      "description": "Kicks a member from the server.",
+      "options": {
+        "user": "The user to kick.",
+        "reason": "The reason for kicking the user."
+      }
+    },
     "errors": {
       "missing_everyone": "❓ The @everyone role could not be found.",
       "guild_not_found": "⚠️ This command must be run in a server.",
       "user_not_found": "❓ User not found in this server.",
       "missing_guild": "⚠️ This command can only be used in a server.",
       "invalid_channel": "⚠️ This command must be used in a text channel.",
-      "unexpected": "❌ An unexpected error occurred. Please try again later."
+      "unexpected": "❌ An unexpected error occurred. Please try again later.",
+      "env": {
+        "token_missing": "ERROR: Bot token (TOKEN) not found in .env file. Exiting.",
+        "client_id_missing": "ERROR: Client ID (CLIENT_ID) not found in .env file. Exiting."
+      },
+      "command_malformed": "Command data for \"{commandName}\" is malformed or missing toJSON method.",
+      "command_registration_failed": "[Command Registration Error]",
+      "internal": {
+        "client_commands_missing": "Client commands collection not found on interaction.client.",
+        "reply_failed": "Failed to send error reply to interaction:"
+      },
+      "command_not_found_log": "Command {commandName} not found in collection.",
+      "command_not_found_user": "The command '{commandName}' could not be found.",
+      "command_execution_error_log": "Error executing command {commandName}:",
+      "command_execution_failed_user": "There was an error while executing this command!",
+      "unexpected_user": "An unexpected error occurred processing your command.",
+      "login_failed": "Failed to log in to Discord:"
     }
   },
   "announce": {
@@ -251,6 +278,9 @@
         "description": "An optional color for the announcement embed (default: Blurple)."
       }
     },
+    "image": {
+      "description": "An image to include in the announcement embed (optional)."
+    },
     "success": "✅ Announcement successfully sent to {channel}!",
     "embed_footer": "📢 Announcement by {user}",
     "error_invalid_channel_type": "❌ Please select a valid text channel for the announcement.",
@@ -266,5 +296,21 @@
     "autorole": {
       "assigned": "✅ Auto role has been assigned to <@{userId}>"
     }
+  },
+  "logs": {
+    "loading": {
+      "commands": "Loading commands...",
+      "commands_done": "Loaded {count} commands.",
+      "events": "Loading events...",
+      "workers": "Loading workers..."
+    },
+    "command_registration": {
+      "started": "Started refreshing application (/) commands.",
+      "global_success": "Successfully reloaded global application (/) commands.",
+      "guild_success": "Successfully reloaded application (/) commands for guild {guildId}."
+    },
+    "debug_mode_enabled": "🛠️ Debug mode is ENABLED.",
+    "bot_logging_in": "Logging in to Discord...",
+    "bot_logged_in_success": "Bot logged in as {username}!"
   }
 }
