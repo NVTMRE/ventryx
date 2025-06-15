@@ -133,16 +133,20 @@ export function t(key: string, options?: TranslationOptions | Record<string, str
   }
 
   // Interpolation (handle if 'options' is for defaultValue or for vars)
-   // Check if options is not just for defaultValue
-  const varsForInterpolation = (typeof options === 'object' && options !== null && !('defaultValue' in options))
-      ? options as Record<string, string | number>
-      : (typeof options === 'object' && options !== null && Object.keys(options).length > 1)
-          ? options as Record<string, string | number> // has defaultValue AND other vars
-          : undefined;
-  if (varsForInterpolation) {
-    for (const [variableKey, value] of Object.entries(varsForInterpolation)) {
-      if (variableKey === 'defaultValue') continue; // Skip defaultValue itself for interpolation
-      text = text.replaceAll(`{${variableKey}}`, String(value));
+  if (typeof text === 'string') {
+    // Check if options is not just for defaultValue
+    const varsForInterpolation = (typeof options === 'object' && options !== null && !('defaultValue' in options))
+        ? options as Record<string, string | number>
+        : (typeof options === 'object' && options !== null && Object.keys(options).length > 1)
+            ? options as Record<string, string | number> // has defaultValue AND other vars
+            : undefined;
+
+
+    if (varsForInterpolation) {
+      for (const [variableKey, value] of Object.entries(varsForInterpolation)) {
+        if (variableKey === 'defaultValue') continue; // Skip defaultValue itself for interpolation
+        text = text.replaceAll(`{${variableKey}}`, String(value));
+      }
     }
   }
   return text || key;

@@ -78,7 +78,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const messageContent = rawMessageContent.replace(/\\n/g, '\n');
 
     // You can log the imported default color for debugging if needed:
-    console.log(`[AnnounceCommand] Imported defaultEmbedColorHex: "${defaultEmbedColorHex}"`);
+    // console.log(`[AnnounceCommand] Imported defaultEmbedColorHex: "${defaultEmbedColorHex}"`);
 
     if (!targetChannel) { // Should not happen due to .setRequired(true) and addChannelTypes, but good for type safety
         return interaction.reply({

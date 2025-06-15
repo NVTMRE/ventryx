@@ -8,8 +8,6 @@ import {
   Partials
 } from 'discord.js';
 
-// ---- Import functions from your i18n module ----
-// Adjust the path if your i18n file is located elsewhere (e.g., './lib/i18n')
 import { initializeI18n, t } from './lib/i18n'; // Assuming i18n.ts is in src/lib/
 
 import { loadCommands } from './commands/loader';
