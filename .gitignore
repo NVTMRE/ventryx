@@ -1,52 +1,57 @@
-# Bun
-bun.lockb
-bun.lock
-
-# Node.js
+# Dependency directories
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# TypeScript
+# Build output
 dist/
 build/
-*.tsbuildinfo
 
-# Env files
+# Environment variables
 .env
 .env.local
-.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Drizzle ORM
-drizzle/
-drizzle.config.ts
-*.sqlite
-*.sqlite-journal
+# TypeScript
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Logs
 logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-bun-debug.log*
 
-# OS-specific
-.DS_Store
-Thumbs.db
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
 
-# IDEs/editors
-.vscode/
-.idea/
-*.sw?
-
-# Optional: test coverage
+# Coverage directory used by tools like istanbul
 coverage/
+.nyc_output/
 
-# Optional: compiled docs/temp
-docs/
-temp/
-tmp/
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
-# Certificates, secrets
-*.pem
-*.key
-*.crt
+# PM2
+ecosystem.config.js
