@@ -1,9 +1,12 @@
+// src/index.ts
+
 import {
   Client,
   GatewayIntentBits,
   Collection,
   REST,
   Routes,
+  Partials, // WAŻNE
 } from "discord.js";
 import dotenv from "dotenv";
 import { VentryxClient } from "./types";
@@ -37,7 +40,9 @@ class VentryxBot {
         GatewayIntentBits.MessageContent,
         GatewayIntentBits.GuildMembers,
         GatewayIntentBits.GuildVoiceStates,
+        GatewayIntentBits.GuildMessageReactions, // DODANA INTENCJA
       ],
+      partials: [Partials.Message, Partials.Channel, Partials.Reaction], // DODANE PARTIALE
     }) as VentryxClient;
 
     this.shoukaku = new Shoukaku(
@@ -53,8 +58,6 @@ class VentryxBot {
     );
 
     this.client.shoukaku = this.shoukaku;
-
-    // Dodaj do global dla workerów
     (global as any).__ventryxClient = this.client;
 
     this.client.commands = new Collection();
@@ -166,8 +169,6 @@ class VentryxBot {
   public async start(): Promise<void> {
     try {
       console.log("🤖 Starting Ventryx Bot...");
-
-      // Inicjalizuj XPManager (singleton)
       XPManager.getInstance();
       console.log("✅ XPManager initialized");
 
@@ -175,8 +176,8 @@ class VentryxBot {
       await this.loader.reloadAll();
       await this.client.login(process.env.DISCORD_TOKEN);
 
-      this.client.once("clientReady", () => {
-        console.log(`✅ Logged in as ${this.client.user!.tag}`);
+      this.client.once("ready", (c) => {
+        console.log(`✅ Logged in as ${c.user.tag}`);
         this.deployCommands();
       });
 
@@ -190,7 +191,6 @@ class VentryxBot {
   private async shutdown(): Promise<void> {
     console.log("🔄 Shutting down Ventryx Bot...");
 
-    // Flush pending XP updates przed zamknięciem
     try {
       const xpManager = XPManager.getInstance();
       const result = await xpManager.flush();

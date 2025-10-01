@@ -7,7 +7,7 @@ import {
   timestamp,
   primaryKey,
   index,
-  boolean, // ← DODAJ TO
+  boolean,
 } from "drizzle-orm/pg-core";
 
 export const userLevels = pgTable(
@@ -31,7 +31,9 @@ export const userLevels = pgTable(
 export const levelConfig = pgTable("level_config", {
   guildId: text("guild_id").primaryKey(),
   xpPerMessage: integer("xp_per_message").notNull().default(15),
-  xpPerMessageVariance: integer("xp_per_message_variance").notNull().default(10),
+  xpPerMessageVariance: integer("xp_per_message_variance")
+    .notNull()
+    .default(10),
   xpPerVoiceMinute: integer("xp_per_voice_minute").notNull().default(5),
   messageCooldown: integer("message_cooldown").notNull().default(60),
   ignoreChannels: text("ignore_channels").array().default([]),
@@ -51,9 +53,26 @@ export const levelRoles = pgTable("level_roles", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// NOWA TABELA DLA AUTOROLI
+export const autoRoles = pgTable(
+  "auto_roles",
+  {
+    guildId: text("guild_id").notNull(),
+    messageId: text("message_id").notNull(),
+    roleId: text("role_id").notNull(),
+    emoji: text("emoji").notNull(),
+    isDefault: boolean("is_default").notNull().default(false),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.guildId, table.messageId, table.emoji] }),
+  })
+);
+
 export type UserLevel = typeof userLevels.$inferSelect;
 export type NewUserLevel = typeof userLevels.$inferInsert;
 export type LevelConfig = typeof levelConfig.$inferSelect;
 export type NewLevelConfig = typeof levelConfig.$inferInsert;
 export type LevelRole = typeof levelRoles.$inferSelect;
 export type NewLevelRole = typeof levelRoles.$inferInsert;
+export type AutoRole = typeof autoRoles.$inferSelect;
+export type NewAutoRole = typeof autoRoles.$inferInsert;

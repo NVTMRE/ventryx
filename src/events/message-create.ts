@@ -1,5 +1,3 @@
-// src/events/message-create.ts
-
 import { Event } from "../types";
 import { Message } from "discord.js";
 import { XPManager } from "../managers/xp-manager";

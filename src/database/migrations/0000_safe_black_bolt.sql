@@ -1,3 +1,12 @@
+CREATE TABLE "auto_roles" (
+	"guild_id" text NOT NULL,
+	"message_id" text NOT NULL,
+	"role_id" text NOT NULL,
+	"emoji" text NOT NULL,
+	"is_default" boolean DEFAULT false NOT NULL,
+	CONSTRAINT "auto_roles_guild_id_message_id_emoji_pk" PRIMARY KEY("guild_id","message_id","emoji")
+);
+--> statement-breakpoint
 CREATE TABLE "level_config" (
 	"guild_id" text PRIMARY KEY NOT NULL,
 	"xp_per_message" integer DEFAULT 15 NOT NULL,
