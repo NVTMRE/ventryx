@@ -1,437 +1,582 @@
+// src/commands/autorole.ts
+
 import {
-  ChatInputCommandInteraction,
-  EmbedBuilder,
-  MessageFlags,
-  PermissionFlagsBits,
-  Role,
   SlashCommandBuilder,
+  EmbedBuilder,
+  PermissionFlagsBits,
+  ChannelType,
   TextChannel,
-} from 'discord.js';
-import { db } from '../lib/db';
-import { autoroles, autoroleReactions } from '../lib/db/schema';
-import { and, eq } from 'drizzle-orm';
-import { t } from '../lib/i18n';
-import {embedColor} from "../config/embed-color";
+  Role,
+  ChatInputCommandInteraction,
+  Guild,
+  Message,
+} from "discord.js";
+import { Command } from "../types";
+import { db } from "../database/connection";
+import { autoRoles } from "../database/schema";
+import { eq, and } from "drizzle-orm";
 
-export const data = new SlashCommandBuilder()
-  .setName('autorole')
-  .setDescription(t('commands.autorole.description'))
-  .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-  .addSubcommand(subcommand =>
-    subcommand
-      .setName('set')
-      .setDescription(t('commands.autorole.set.description'))
-      .addRoleOption(option =>
-        option
-          .setName('role')
-          .setDescription(t('commands.autorole.set.option_role'))
-          .setRequired(true),
-      )
-  )
-  .addSubcommand(subcommand =>
-    subcommand
-      .setName('show')
-      .setDescription(t('commands.autorole.show.description')),
-  )
-  .addSubcommandGroup(group =>
-    group
-      .setName('panel')
-      .setDescription(t('commands.autorole.panel.description'))
-      .addSubcommand(sub =>
-        sub
-          .setName('create')
-          .setDescription(t('commands.autorole.panel.create.description'))
-          .addRoleOption(opt =>
-            opt.setName('role').setDescription(t('commands.autorole.panel.create.option_role')).setRequired(true)
-          )
-          .addStringOption(opt =>
-            opt.setName('emoji').setDescription(t('commands.autorole.panel.create.option_emoji')).setRequired(true)
-          )
-          .addStringOption(opt =>
-            opt
-              .setName('panel_id')
-              .setDescription(t('commands.autorole.panel.create.option_panel_id'))
-              .setRequired(true)
-          )
-          .addStringOption(opt =>
-            opt.setName('description').setDescription(t('commands.autorole.panel.create.option_description')).setRequired(false)
-          )
-      )
-      .addSubcommand(sub =>
-        sub
-          .setName('list')
-          .setDescription(t('commands.autorole.panel.list.description'))
-          .addStringOption(opt =>
-            opt
-              .setName('panel_id')
-              .setDescription(t('commands.autorole.panel.list.option_panel_id'))
-              .setRequired(false)
-          )
-      )
-      .addSubcommand(sub =>
-        sub
-          .setName('remove')
-          .setDescription(t('commands.autorole.panel.remove.description'))
-          .addRoleOption(opt =>
-            opt.setName('role').setDescription(t('commands.autorole.panel.remove.option_role')).setRequired(true)
-          )
-          .addStringOption(opt =>
-            opt
-              .setName('panel_id')
-              .setDescription(t('commands.autorole.panel.remove.option_panel_id'))
-              .setRequired(true)
-          )
-      )
-  );
-
-export async function execute(interaction: ChatInputCommandInteraction) {
-  if (!interaction.guildId || !interaction.guild) {
-    return interaction.reply({
-      content: t('errors.missing_guild'),
-      flags: MessageFlags.Ephemeral,
-    });
+async function findMessageInGuild(
+  guild: Guild,
+  messageId: string
+): Promise<Message | null> {
+  const channels = guild.channels.cache.filter((c) => c.isTextBased());
+  for (const channel of channels.values()) {
+    try {
+      return await (channel as TextChannel).messages.fetch(messageId);
+    } catch {}
   }
-
-  const subcommand = interaction.options.getSubcommand();
-  const subcommandGroup = interaction.options.getSubcommandGroup(false);
-
-  // /autorole set - pojedyncza rola automatyczna (nie panele)
-  if (subcommand === 'set') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    try {
-      const role = interaction.options.getRole('role', true) as Role;
-
-      // Check if an autorole is already set for this guild
-      const existing = await db.query.autoroles.findFirst({
-        where: eq(autoroles.guildId, interaction.guildId),
-      });
-
-      const newRoleId = role.id;
-
-      if (existing) {
-        // Remove old autorole from all members who have it
-        const oldRole = await interaction.guild.roles.fetch(existing.roleId).catch(() => null);
-
-        if (oldRole) {
-          const members = await interaction.guild.members.fetch();
-          for (const member of members.values()) {
-            if (member.roles.cache.has(oldRole.id)) {
-              await member.roles.remove(oldRole).catch(err =>
-                console.warn(`[AutoRole] Couldn't remove old role from ${member.user.tag}:`, err.message)
-              );
-            }
-          }
-        }
-
-        // Update DB with a new role
-        await db.update(autoroles)
-          .set({ roleId: newRoleId })
-          .where(eq(autoroles.guildId, interaction.guildId));
-      } else {
-        // Insert new autorole
-        await db.insert(autoroles).values({
-          guildId: interaction.guildId,
-          roleId: newRoleId,
-        });
-      }
-
-      // Assign the new autorole to all non-bot members
-      const members = await interaction.guild.members.fetch();
-      for (const member of members.values()) {
-        if (!member.user.bot) {
-          await member.roles.add(role).catch(err =>
-            console.warn(`[AutoRole] Couldn't assign new role to ${member.user.tag}:`, err.message)
-          );
-        }
-      }
-
-      await interaction.editReply({
-        content: t('commands.autorole.set.success', { roleId: newRoleId }),
-      });
-
-    } catch (error) {
-      console.error(`[Autorole Set] Error:`, error);
-      await interaction.editReply({
-        content: t('commands.autorole.set.error', {
-          message: (error as Error).message,
-        }),
-      });
-    }
-
-    // /autorole show
-  } else if (subcommand === 'show') {
-    try {
-      const result = await db.query.autoroles.findFirst({
-        where: eq(autoroles.guildId, interaction.guildId),
-      });
-
-      if (!result) {
-        await interaction.reply({
-          content: t('commands.autorole.show.notSet'),
-          flags: MessageFlags.Ephemeral,
-        });
-        return;
-      }
-
-      await interaction.reply({
-        content: t('commands.autorole.show.success', { roleId: result.roleId }),
-        flags: MessageFlags.Ephemeral,
-      });
-
-    } catch (error) {
-      console.error('Error executing autorole-show command:', error);
-      await interaction.reply({
-        content: t('errors.unexpected'),
-        flags: MessageFlags.Ephemeral,
-      });
-    }
-
-    // /autorole panel create - enhanced to support multiple roles in one panel message
-  } else if (subcommandGroup === 'panel' && subcommand === 'create') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    try {
-      const role = interaction.options.getRole('role', true) as Role;
-      const emoji = interaction.options.getString('emoji', true);
-      const desc = interaction.options.getString('description') ?? role.name;
-      const panelId = interaction.options.getString('panel_id') ?? 'default'; // domyślny panelId = 'default'
-
-      const channel = interaction.channel;
-
-      if (!channel || !(channel instanceof TextChannel)) {
-        return interaction.editReply({
-          content: t('errors.invalid_channel'),
-        });
-      }
-
-      // Sprawdź czy jest już panel o danym panelId w tym guildzie (sprawdzamy czy jest messageId dla panelId)
-      const existingReactionsForPanel = await db.query.autoroleReactions.findMany({
-        where: and(
-          eq(autoroleReactions.guildId, interaction.guildId),
-          eq(autoroleReactions.panelId, panelId)
-        ),
-      });
-
-      if (existingReactionsForPanel.length > 0) {
-        // Panel istnieje, pobierz wiadomość panelu
-        const messageId = existingReactionsForPanel[0].messageId;
-
-        const message = await channel.messages.fetch(messageId).catch(() => null);
-
-        if (!message) {
-          // Wiadomość została usunięta, wyczyść reakcje i stwórz panel od nowa
-          await db.delete(autoroleReactions).where(
-            and(
-              eq(autoroleReactions.guildId, interaction.guildId),
-              eq(autoroleReactions.panelId, panelId),
-            )
-          );
-          throw new Error('Panel message missing, creating a new one.');
-        }
-
-        // Sprawdź czy rola już istnieje w panelu
-        const roleExists = existingReactionsForPanel.some(r => r.roleId === role.id);
-        if (roleExists) {
-          return interaction.editReply({
-            content: t('commands.autorole.panel.already_exists'),
-          });
-        }
-
-        // Dodaj nową reakcję w DB
-        await db.insert(autoroleReactions).values({
-          guildId: interaction.guildId,
-          messageId,
-          emoji,
-          roleId: role.id,
-          panelId,
-        });
-
-        // Dodaj reakcję do wiadomości
-        await message.react(emoji).catch(() => {
-          throw new Error(t('commands.autorole.panel.create.invalid_emoji'));
-        });
-
-        // Zaktualizuj embed
-        const updatedReactions = [...existingReactionsForPanel, { guildId: interaction.guildId, messageId, emoji, roleId: role.id, panelId }];
-
-        const description = updatedReactions
-          .map(r => `${r.emoji} → <@&${r.roleId}>`)
-          .join('\n');
-
-        const embed = new EmbedBuilder()
-          .setTitle(panelId)
-          .setDescription(description)
-          .setColor(embedColor);
-
-        await message.edit({ embeds: [embed] });
-
-        return interaction.editReply({
-          content: t('commands.autorole.panel.add_success', { emoji, roleId: role.id }),
-        });
-      } else {
-        const embed = new EmbedBuilder()
-          .setTitle(panelId)
-          .setDescription(`${emoji} → <@&${role.id}> — ${desc}`)
-          .setColor(embedColor);
-
-        const message = await channel.send({ embeds: [embed] });
-
-        if (!message) throw new Error('Could not send message.');
-
-        await message.react(emoji).catch(() => {
-          throw new Error(t('commands.autorole.panel.create.invalid_emoji'));
-        });
-
-        // Zapisz reakcję w DB z panelId
-        await db.insert(autoroleReactions).values({
-          guildId: interaction.guildId,
-          messageId: message.id,
-          emoji,
-          roleId: role.id,
-          panelId,
-        });
-
-        return interaction.editReply({
-          content: t('commands.autorole.panel.add_success', { emoji, roleId: role.id }),
-        });
-      }
-    } catch (error) {
-      console.error('Error in autorole panel create:', error);
-      await interaction.editReply({
-        content: t('errors.unexpected'),
-      });
-    }
-  }
-
-  // /autorole panel list
-  else if (subcommandGroup === 'panel' && subcommand === 'list') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    try {
-      const panelId = interaction.options.getString('panel_id');
-
-      let entries;
-      if (panelId) {
-        entries = await db.query.autoroleReactions.findMany({
-          where: and(
-            eq(autoroleReactions.guildId, interaction.guildId),
-            eq(autoroleReactions.panelId, panelId),
-          ),
-        });
-      } else {
-        // Pokaż wszystkie reakcje wszystkich paneli, pogrupowane po panelId
-        entries = await db.query.autoroleReactions.findMany({
-          where: eq(autoroleReactions.guildId, interaction.guildId),
-        });
-      }
-
-      if (!entries.length) {
-        await interaction.editReply({
-          content: t('commands.autorole.panel.list.empty'),
-        });
-        return;
-      }
-
-      // Grupowanie po panelId
-      const grouped = entries.reduce<Record<string, typeof entries>>((acc, item) => {
-        if (!acc[item.panelId]) acc[item.panelId] = [];
-        acc[item.panelId].push(item);
-        return acc;
-      }, {});
-
-      let message = '';
-
-      for (const [pid, reactions] of Object.entries(grouped)) {
-        message += `**Panel ID:** \`${pid}\`\n`;
-        for (const r of reactions) {
-          message += `• ${r.emoji} → <@&${r.roleId}>\n`;
-        }
-        message += '\n';
-      }
-
-      await interaction.editReply({ content: message });
-    } catch (error) {
-      console.error('Error in autorole panel list:', error);
-      await interaction.editReply({ content: t('errors.unexpected') });
-    }
-  }
-
-  // /autorole panel remove
-  else if (subcommandGroup === 'panel' && subcommand === 'remove') {
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-    try {
-      const role = interaction.options.getRole('role', true) as Role;
-      const panelId = interaction.options.getString('panel_id') ?? 'default';
-
-      // Find the autorole reaction entry in DB for this guild, role and panelId
-      const reaction = await db.query.autoroleReactions.findFirst({
-        where: and(
-          eq(autoroleReactions.guildId, interaction.guildId),
-          eq(autoroleReactions.roleId, role.id),
-          eq(autoroleReactions.panelId, panelId),
-        ),
-      });
-
-      if (!reaction) {
-        // No such reaction-role mapping found
-        await interaction.editReply({
-          content: t('commands.autorole.panel.not_found'),
-        });
-        return;
-      }
-
-      // Delete the reaction-role mapping from DB
-      await db.delete(autoroleReactions).where(
-        and(
-          eq(autoroleReactions.guildId, interaction.guildId),
-          eq(autoroleReactions.roleId, role.id),
-          eq(autoroleReactions.panelId, panelId),
-        )
-      );
-
-      const channel = interaction.channel;
-      if (channel && channel.isTextBased()) {
-        try {
-          // Fetch the panel message where reactions are attached
-          const message = await channel.messages.fetch(reaction.messageId);
-          if (message) {
-            // Find the reaction on the message that matches the stored emoji
-            const reactionToRemove = message.reactions.cache.find(r => {
-              // For unicode emoji, compare name directly
-              if (r.emoji.name === reaction.emoji) return true;
-              // For custom emoji, compare identifier
-              return 'id' in r.emoji && r.emoji.id && r.emoji.identifier === reaction.emoji;
-            });
-            if (reactionToRemove) {
-              // Remove the bot's own reaction from the message
-              await reactionToRemove.users.remove(interaction.client.user!.id);
-              // Alternatively, to remove the entire reaction (all users), use:
-              // await reactionToRemove.remove();
-            }
-
-            // Update the embed description to remove the line with this emoji and role mention
-            const embed = message.embeds[0];
-            if (embed) {
-              const lines = embed.description?.split('\n') ?? [];
-              const filtered = lines.filter(line => !line.includes(reaction.emoji) && !line.includes(`<@&${role.id}>`));
-              const newEmbed = EmbedBuilder.from(embed).setDescription(filtered.join('\n'));
-              await message.edit({ embeds: [newEmbed] });
-            }
-          }
-        } catch (error) {
-          console.warn('Failed to fetch or edit the panel message:', error);
-        }
-      }
-
-      await interaction.editReply({
-        content: t('commands.autorole.panel.remove_success', { roleId: role.id }),
-      });
-    } catch (error) {
-      console.error('Error in autorole panel remove:', error);
-      await interaction.editReply({ content: t('errors.unexpected') });
-    }
-  }
-
+  return null;
 }
+
+const command: Command = {
+  data: new SlashCommandBuilder()
+    .setName("autorole")
+    .setDescription("Zarządzaj systemem autoroli.")
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageRoles)
+    .addSubcommandGroup((group) =>
+      group
+        .setName("panel")
+        .setDescription("Zarządzaj panelami ról z reakcjami.")
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("create")
+            .setDescription("Tworzy nowy, pusty panel ról.")
+            .addChannelOption((option) =>
+              option
+                .setName("channel")
+                .setDescription("Kanał, na którym ma powstać panel.")
+                .addChannelTypes(ChannelType.GuildText)
+                .setRequired(true)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("title")
+                .setDescription("Tytuł panelu.")
+                .setRequired(true)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("description")
+                .setDescription("Opis w panelu (użyj \\n dla nowej linii).")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("add")
+            .setDescription("Dodaje rolę do istniejącego panelu.")
+            .addStringOption((option) =>
+              option
+                .setName("message_id")
+                .setDescription(
+                  "ID wiadomości panelu, do którego chcesz dodać rolę."
+                )
+                .setRequired(true)
+            )
+            .addRoleOption((option) =>
+              option
+                .setName("role")
+                .setDescription("Rola do dodania.")
+                .setRequired(true)
+            )
+            .addStringOption((option) =>
+              option
+                .setName("emoji")
+                .setDescription("Emoji powiązane z rolą.")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("delete")
+            .setDescription("Usuwa rolę z istniejącego panelu.")
+            .addStringOption((option) =>
+              option
+                .setName("message_id")
+                .setDescription(
+                  "ID wiadomości panelu, z którego chcesz usunąć rolę."
+                )
+                .setRequired(true)
+            )
+            .addRoleOption((option) =>
+              option
+                .setName("role")
+                .setDescription("Rola do usunięcia.")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("list")
+            .setDescription("Wyświetla listę aktywnych paneli ról.")
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("disable")
+            .setDescription("Całkowicie usuwa panel ról i jego konfigurację.")
+            .addStringOption((option) =>
+              option
+                .setName("message_id")
+                .setDescription("ID wiadomości panelu do usunięcia.")
+                .setRequired(true)
+            )
+        )
+    )
+    .addSubcommandGroup((group) =>
+      group
+        .setName("default")
+        .setDescription("Zarządzaj domyślną rolą na serwerze.")
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("set")
+            .setDescription(
+              "Ustaw lub zmień domyślną rolę dla wszystkich użytkowników."
+            )
+            .addRoleOption((option) =>
+              option
+                .setName("role")
+                .setDescription("Rola, która zostanie nadana wszystkim.")
+                .setRequired(true)
+            )
+        )
+        .addSubcommand((subcommand) =>
+          subcommand
+            .setName("remove")
+            .setDescription("Usuń domyślną rolę od wszystkich użytkowników.")
+        )
+    ),
+
+  execute: async (interaction: ChatInputCommandInteraction): Promise<void> => {
+    if (!interaction.guild) {
+      await interaction.reply({
+        content: "Ta komenda może być używana tylko na serwerze.",
+        ephemeral: true,
+      });
+      return;
+    }
+
+    const group = interaction.options.getSubcommandGroup();
+    const subcommand = interaction.options.getSubcommand();
+
+    try {
+      if (group === "panel") {
+        if (subcommand === "create") await handlePanelCreate(interaction);
+        else if (subcommand === "add") await handlePanelAdd(interaction);
+        else if (subcommand === "delete") await handlePanelDelete(interaction);
+        else if (subcommand === "list") await handlePanelList(interaction);
+        else if (subcommand === "disable")
+          await handlePanelDisable(interaction);
+      } else if (group === "default") {
+        if (subcommand === "set") await handleDefaultSet(interaction);
+        else if (subcommand === "remove")
+          await handleDefaultRemove(interaction);
+      }
+    } catch (error) {
+      console.error(`Błąd w komendzie /autorole:`, error);
+      const errorMessage =
+        "❌ Wystąpił nieoczekiwany błąd podczas wykonywania tej komendy.";
+      if (interaction.deferred || interaction.replied)
+        await interaction.followUp({ content: errorMessage, ephemeral: true });
+      else await interaction.reply({ content: errorMessage, ephemeral: true });
+    }
+  },
+};
+
+async function handlePanelCreate(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  const channel = interaction.options.getChannel(
+    "channel",
+    true
+  ) as TextChannel;
+  const title = interaction.options.getString("title", true);
+  const description = interaction.options.getString("description", true);
+
+  await interaction.deferReply({ ephemeral: true });
+
+  const embed = new EmbedBuilder()
+    .setTitle(title)
+    .setDescription(
+      description.replace(/\\n/g, "\n") +
+        "\n\n**Aktualne role:**\n_Brak ról. Użyj `/autorole panel add`_"
+    )
+    .setColor(0x5865f2);
+
+  const message = await channel.send({ embeds: [embed] });
+
+  await interaction.editReply({
+    content: `✅ Pomyślnie utworzono panel ról. ID wiadomości to: \`${message.id}\`\nUżyj go w kolejnych komendach, aby dodać role.`,
+  });
+}
+
+async function handlePanelAdd(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  const messageId = interaction.options.getString("message_id", true);
+  const role = interaction.options.getRole("role", true) as Role;
+  const emojiInput = interaction.options.getString("emoji", true);
+  const guild = interaction.guild!;
+
+  await interaction.deferReply({ ephemeral: true });
+
+  const customEmojiMatch = emojiInput.match(/<a?:\w+:(\d+)>/);
+  // Ta nowa, bardziej liberalna regex poprawnie rozpoznaje emoji takie jak 🛡️
+  const isStandardEmoji = /\p{Extended_Pictographic}/u.test(emojiInput);
+
+  if (!customEmojiMatch && !isStandardEmoji) {
+    await interaction.editReply(
+      "❌ Wprowadzono niepoprawne emoji. Użyj standardowego emoji Discorda (np. 👍) lub pełnego formatu niestandardowego emoji (np. `<:nazwa:ID>`)."
+    );
+    return;
+  }
+
+  const emojiForDb = customEmojiMatch ? customEmojiMatch[1] : emojiInput;
+  const emojiForReaction = customEmojiMatch ? customEmojiMatch[1] : emojiInput;
+
+  const message = await findMessageInGuild(guild, messageId);
+  if (!message) {
+    await interaction.editReply(
+      "❌ Nie znaleziono wiadomości panelu o podanym ID na tym serwerze."
+    );
+    return;
+  }
+
+  const botMember = await guild.members.fetch(interaction.client.user.id);
+  if (role.position >= botMember.roles.highest.position) {
+    await interaction.editReply(
+      `❌ Błąd: Rola **${role.name}** jest wyżej niż moja. Nie mogę nią zarządzać.`
+    );
+    return;
+  }
+
+  const existingEmoji = await db.query.autoRoles.findFirst({
+    where: and(
+      eq(autoRoles.messageId, messageId),
+      eq(autoRoles.guildId, guild.id),
+      eq(autoRoles.emoji, emojiForDb)
+    ),
+  });
+  if (existingEmoji) {
+    await interaction.editReply(`❌ To emoji jest już używane w tym panelu.`);
+    return;
+  }
+
+  const oldEmbed = message.embeds[0];
+  let newDescription = (oldEmbed.description || "").replace(
+    "\n_Brak ról. Użyj `/autorole panel add`_",
+    ""
+  );
+  newDescription += `\n${emojiInput} - <@&${role.id}>`;
+  const newEmbed = EmbedBuilder.from(oldEmbed).setDescription(newDescription);
+  await message.edit({ embeds: [newEmbed] });
+
+  await message
+    .react(emojiForReaction)
+    .catch((e) => console.error("Nie udało się dodać reakcji:", e));
+
+  await db.insert(autoRoles).values({
+    guildId: guild.id,
+    messageId: message.id,
+    roleId: role.id,
+    emoji: emojiForDb,
+    isDefault: false,
+  });
+
+  await interaction.editReply(
+    `✅ Pomyślnie dodano rolę ${role} z emoji ${emojiInput} do panelu.`
+  );
+}
+
+async function handlePanelDelete(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  const messageId = interaction.options.getString("message_id", true);
+  const role = interaction.options.getRole("role", true) as Role;
+  const guild = interaction.guild!;
+
+  await interaction.deferReply({ ephemeral: true });
+
+  const config = await db.query.autoRoles.findFirst({
+    where: and(
+      eq(autoRoles.messageId, messageId),
+      eq(autoRoles.roleId, role.id)
+    ),
+  });
+
+  if (!config) {
+    await interaction.editReply(
+      "❌ Ta rola nie jest przypisana do tego panelu."
+    );
+    return;
+  }
+
+  const message = await findMessageInGuild(guild, messageId);
+  if (message) {
+    const oldEmbed = message.embeds[0];
+    const lines = (oldEmbed.description || "").split("\n");
+    const newLines = lines.filter((line) => !line.includes(role.id));
+    let updatedDescription = newLines.join("\n").trim();
+    if (!newLines.some((line) => line.includes("<@&"))) {
+      updatedDescription += "\n_Brak ról. Użyj `/autorole panel add`_";
+    }
+
+    const newEmbed =
+      EmbedBuilder.from(oldEmbed).setDescription(updatedDescription);
+    await message.edit({ embeds: [newEmbed] });
+
+    const reaction = message.reactions.cache.get(config.emoji);
+    if (reaction && reaction.users.cache.has(interaction.client.user.id)) {
+      await reaction.users.remove(interaction.client.user.id);
+    }
+  }
+
+  await db
+    .delete(autoRoles)
+    .where(
+      and(eq(autoRoles.messageId, messageId), eq(autoRoles.roleId, role.id))
+    );
+
+  await interaction.editReply(`✅ Pomyślnie usunięto rolę ${role} z panelu.`);
+}
+
+async function handlePanelList(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  await interaction.deferReply({ ephemeral: true });
+  const guild = interaction.guild!;
+
+  const panelConfigs = await db.query.autoRoles.findMany({
+    where: and(eq(autoRoles.guildId, guild.id), eq(autoRoles.isDefault, false)),
+    orderBy: autoRoles.messageId,
+  });
+
+  if (panelConfigs.length === 0) {
+    await interaction.editReply(
+      "ℹ️ Na tym serwerze nie ma aktywnych paneli ról."
+    );
+    return;
+  }
+
+  const panelsMap = new Map<
+    string,
+    {
+      title: string;
+      url: string;
+      channelId: string | null;
+      roles: { roleId: string; emoji: string }[];
+    }
+  >();
+
+  for (const config of panelConfigs) {
+    if (!panelsMap.has(config.messageId)) {
+      const message = await findMessageInGuild(guild, config.messageId);
+      panelsMap.set(config.messageId, {
+        title: message?.embeds[0]?.title || "Brak tytułu",
+        url: message?.url || "#",
+        channelId: message?.channel.id || null,
+        roles: [],
+      });
+    }
+    panelsMap
+      .get(config.messageId)!
+      .roles.push({ roleId: config.roleId, emoji: config.emoji });
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle("Lista paneli ról")
+    .setColor(0x5865f2)
+    .setDescription(
+      "Poniżej znajdziesz listę wszystkich skonfigurowanych paneli ról na tym serwerze."
+    );
+
+  for (const [messageId, panelData] of panelsMap.entries()) {
+    const rolesContent = panelData.roles
+      .map((r) => {
+        const customEmoji = guild.emojis.cache.get(r.emoji);
+        const displayEmoji = customEmoji ? customEmoji.toString() : r.emoji;
+        return `${displayEmoji} - <@&${r.roleId}>`;
+      })
+      .join("\n");
+
+    let fieldTitle = `Panel "${panelData.title}"`;
+    let fieldValue = `**ID Wiadomości:** \`${messageId}\`\n`;
+    if (panelData.channelId) {
+      fieldValue += `**Kanał:** <#${panelData.channelId}> | **[Link](${panelData.url})**\n`;
+    } else {
+      fieldValue += `**Status:** ⚠️ Wiadomość usunięta lub niedostępna.\n`;
+    }
+    fieldValue += `**Role:**\n${rolesContent || "_Brak_"}`;
+
+    embed.addFields({ name: fieldTitle, value: fieldValue, inline: false });
+  }
+
+  await interaction.editReply({ embeds: [embed] });
+}
+
+async function handlePanelDisable(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  const messageId = interaction.options.getString("message_id", true);
+  await interaction.deferReply({ ephemeral: true });
+
+  const message = await findMessageInGuild(interaction.guild!, messageId);
+  if (message) {
+    await message
+      .delete()
+      .catch((e) =>
+        console.error("Nie udało się usunąć wiadomości panelu:", e)
+      );
+  }
+
+  await db
+    .delete(autoRoles)
+    .where(
+      and(
+        eq(autoRoles.guildId, interaction.guildId!),
+        eq(autoRoles.messageId, messageId)
+      )
+    );
+
+  await interaction.editReply(
+    "✅ Pomyślnie usunięto panel i jego konfigurację z bazy danych."
+  );
+}
+
+async function handleDefaultSet(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  const newRole = interaction.options.getRole("role", true) as Role;
+  const guild = interaction.guild!;
+  const botMember = await guild.members.fetch(interaction.client.user.id);
+
+  if (newRole.id === guild.id) {
+    await interaction.reply({
+      content: "❌ Rola @everyone nie może być ustawiona jako rola domyślna.",
+      ephemeral: true,
+    });
+    return;
+  }
+
+  if (newRole.position >= botMember.roles.highest.position) {
+    await interaction.reply({
+      content: `❌ Błąd: Rola **${newRole.name}** jest wyżej niż moja. Nie mogę nią zarządzać.`,
+      ephemeral: true,
+    });
+    return;
+  }
+
+  await interaction.reply({
+    content: `🔄 Rozpoczynam proces... To może potrwać dłuższą chwilę.`,
+    ephemeral: true,
+  });
+
+  const oldDefaultConfig = await db.query.autoRoles.findFirst({
+    where: and(eq(autoRoles.guildId, guild.id), eq(autoRoles.isDefault, true)),
+  });
+
+  const allMembers = await guild.members.fetch();
+
+  if (oldDefaultConfig) {
+    await interaction.followUp({
+      content: `1/3: Odbieranie poprzedniej roli domyślnej...`,
+      ephemeral: true,
+    });
+    try {
+      const oldRole = await guild.roles.fetch(oldDefaultConfig.roleId);
+      if (oldRole) {
+        const removePromises = allMembers.map((member) =>
+          member.roles.remove(oldRole).catch(() => {})
+        );
+        await Promise.allSettled(removePromises);
+      }
+    } catch {
+      /* Ignoruj błąd */
+    }
+    await db
+      .delete(autoRoles)
+      .where(
+        and(eq(autoRoles.guildId, guild.id), eq(autoRoles.isDefault, true))
+      );
+  }
+
+  await interaction.followUp({
+    content: `2/3: Nadawanie nowej roli **${newRole.name}** wszystkim użytkownikom...`,
+    ephemeral: true,
+  });
+  const addPromises = allMembers.map((member) =>
+    member.roles.add(newRole).catch(() => {})
+  );
+  await Promise.allSettled(addPromises);
+
+  await interaction.followUp({
+    content: "3/3: Zapisywanie konfiguracji...",
+    ephemeral: true,
+  });
+  await db.insert(autoRoles).values({
+    guildId: guild.id,
+    messageId: "default",
+    roleId: newRole.id,
+    emoji: "default",
+    isDefault: true,
+  });
+
+  await interaction.followUp({
+    content: `✅ Zakończono! Rola ${newRole} jest teraz domyślną rolą na serwerze.`,
+    ephemeral: true,
+  });
+}
+
+async function handleDefaultRemove(
+  interaction: ChatInputCommandInteraction
+): Promise<void> {
+  const guild = interaction.guild!;
+  await interaction.reply({
+    content:
+      "🔄 Rozpoczynam odbieranie roli domyślnej... To może potrwać chwilę.",
+    ephemeral: true,
+  });
+
+  const defaultConfig = await db.query.autoRoles.findFirst({
+    where: and(eq(autoRoles.guildId, guild.id), eq(autoRoles.isDefault, true)),
+  });
+
+  if (!defaultConfig) {
+    await interaction.editReply(
+      "ℹ️ Na tym serwerze nie jest ustawiona żadna rola domyślna."
+    );
+    return;
+  }
+
+  await interaction.followUp({
+    content: "1/2: Odbieranie roli od wszystkich użytkowników...",
+    ephemeral: true,
+  });
+  try {
+    const roleToRemove = await guild.roles.fetch(defaultConfig.roleId);
+    if (roleToRemove) {
+      const allMembers = await guild.members.fetch();
+      const removePromises = allMembers.map((member) =>
+        member.roles.remove(roleToRemove).catch(() => {})
+      );
+      await Promise.allSettled(removePromises);
+    }
+  } catch {
+    /* Ignoruj błąd */
+  }
+
+  await interaction.followUp({
+    content: "2/2: Usuwanie konfiguracji...",
+    ephemeral: true,
+  });
+  await db
+    .delete(autoRoles)
+    .where(and(eq(autoRoles.guildId, guild.id), eq(autoRoles.isDefault, true)));
+
+  await interaction.followUp({
+    content: "✅ Pomyślnie odebrano rolę domyślną i usunięto jej konfigurację.",
+    ephemeral: true,
+  });
+}
+
+export default command;

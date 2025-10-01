@@ -1,54 +1,53 @@
-import { Client } from 'discord.js';
-import { db } from '../lib/db';
-import { autoroleReactions } from '../lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+// src/events/message-reaction-remove.ts
 
-export function register(client: Client) {
-  console.log('[Event] messageReactionRemove listener registered');
+import { Event } from "../types";
+import { MessageReaction, User } from "discord.js";
+import { db } from "../database/connection";
+import { autoRoles } from "../database/schema";
+import { and, eq } from "drizzle-orm";
 
-  client.on('messageReactionRemove', async (reaction, user) => {
+const event: Event = {
+  name: "messageReactionRemove",
+  execute: async (reaction: MessageReaction, user: User) => {
     if (user.bot) return;
-
-    try {
-      if (reaction.partial) await reaction.fetch().catch(() => {
-      });
-      if (reaction.message?.partial) await reaction.message.fetch().catch(() => {
-      });
-
-      const message = reaction.message;
-      if (!message.guildId) return;
-
-      const emoji = reaction.emoji.id ?? reaction.emoji.name;
-      if (!emoji) return;
-
-      console.log("[reactionRemove] Reaction:", {
-        messageId: message.id,
-        guildId: message.guildId,
-        emoji,
-        user: user.id
-      });
-
-      const match = await db.select()
-        .from(autoroleReactions)
-        .where(and(
-          eq(autoroleReactions.guildId, message.guildId),
-          eq(autoroleReactions.messageId, message.id),
-          eq(autoroleReactions.emoji, emoji)
-        ))
-        .then(r => r[0]);
-
-      if (!match) {
-        console.log("[reactionRemove] No match in DB");
+    if (reaction.partial) {
+      try {
+        await reaction.fetch();
+      } catch (error) {
         return;
       }
-
-      const guild = await client.guilds.fetch(message.guildId);
-      const member = await guild.members.fetch(user.id);
-
-      await member.roles.remove(match.roleId);
-      console.log(`[reactionRemove] Role ${match.roleId} removed from ${user.tag}`);
-    } catch (err) {
-      console.error("[reactionRemove] Error:", err);
     }
-  });
-}
+
+    const { message, emoji } = reaction;
+    const guildId = message.guild?.id;
+    if (!guildId) return;
+
+    const emojiIdentifier = emoji.id ?? emoji.name;
+    if (!emojiIdentifier) return;
+
+    const config = await db.query.autoRoles.findFirst({
+      where: and(
+        eq(autoRoles.guildId, guildId),
+        eq(autoRoles.messageId, message.id),
+        eq(autoRoles.emoji, emojiIdentifier)
+      ),
+    });
+
+    if (!config) return;
+
+    try {
+      const member = await message.guild!.members.fetch(user.id);
+      const role = await message.guild!.roles.fetch(config.roleId);
+      if (role && member) {
+        await member.roles.remove(role);
+      }
+    } catch (error) {
+      console.error(
+        `Nie udało się odebrać roli ${config.roleId} użytkownikowi ${user.id}:`,
+        error
+      );
+    }
+  },
+};
+
+export default event;

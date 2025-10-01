@@ -1,26 +1,54 @@
-import {ChatInputCommandInteraction, PermissionsBitField, SlashCommandBuilder} from 'discord.js';
-import { t } from '../lib/i18n';
+import {
+  SlashCommandBuilder,
+  CommandInteraction,
+  EmbedBuilder,
+} from "discord.js";
+import { Command } from "../types";
 
-export const data = new SlashCommandBuilder()
-  .setName('ping')
-  .setDescription(t('commands.ping.description'))
-  .setDefaultMemberPermissions(PermissionsBitField.Flags.Administrator);
+const command: Command = {
+  data: new SlashCommandBuilder()
+    .setName("ping")
+    .setDescription("Sprawdź ping bota i opóźnienie API"),
 
-export async function execute(interaction: ChatInputCommandInteraction) {
-  // Send an initial reply and fetch the message to measure latency
-  const sent = await interaction.reply({ content: '🏓 Pinging...', fetchReply: true, ephemeral: true });
+  execute: async (interaction: CommandInteraction) => {
+    const sent = await interaction.reply({
+      content: "Pinging...",
+      fetchReply: true,
+    });
 
-  // Calculate the round-trip latency between the interaction and the bot's reply
-  const latency = sent.createdTimestamp - interaction.createdTimestamp;
+    const botLatency = sent.createdTimestamp - interaction.createdTimestamp;
+    const apiLatency = Math.round(interaction.client.ws.ping);
 
-  // Get the current WebSocket heartbeat ping
-  const wsPing = interaction.client.ws.ping;
+    const embed = new EmbedBuilder()
+      .setColor(
+        apiLatency > 200 ? 0xff0000 : apiLatency > 100 ? 0xffff00 : 0x00ff00
+      )
+      .setTitle("🏓 Pong!")
+      .addFields([
+        { name: "🤖 Opóźnienie Bota", value: `${botLatency}ms`, inline: true },
+        { name: "📡 Opóźnienie API", value: `${apiLatency}ms`, inline: true },
+        {
+          name: "📊 Status",
+          value:
+            apiLatency > 200
+              ? "🔴 Wolno"
+              : apiLatency > 100
+              ? "🟡 Średnio"
+              : "🟢 Szybko",
+          inline: true,
+        },
+      ])
+      .setTimestamp()
+      .setFooter({
+        text: "Ventryx Bot",
+        iconURL: interaction.client.user?.displayAvatarURL(),
+      });
 
-  // Edit the initial reply with the final ping information
-  await interaction.editReply(
-    t('commands.ping.response', {
-      latency: `${latency}`,
-      websocket: `${wsPing}`
-    })
-  );
-}
+    await interaction.editReply({
+      content: null,
+      embeds: [embed],
+    });
+  },
+};
+
+export default command;
