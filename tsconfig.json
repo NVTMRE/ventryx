@@ -20,6 +20,6 @@
     "noImplicitAny": true,
     "removeComments": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "managers"],
   "exclude": ["node_modules", "dist"]
 }

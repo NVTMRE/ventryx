@@ -13,16 +13,17 @@
     "commands:clear": "tsx src/cleanup-commands.ts"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
     "discord.js": "^14.14.1",
     "dotenv": "^16.3.1",
-    "drizzle-orm": "^0.29.3",
+    "drizzle-orm": "^0.44.5",
     "pg": "^8.11.3",
     "shoukaku": "^4.1.1"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",
     "@types/pg": "^8.10.9",
-    "drizzle-kit": "^0.20.10",
+    "drizzle-kit": "^0.31.5",
     "eslint": "^9.36.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"

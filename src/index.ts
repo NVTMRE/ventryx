@@ -10,6 +10,7 @@ import { VentryxClient } from "./types";
 import { Loader } from "./utils/loader";
 import { connectDatabase, disconnectDatabase } from "./database/connection";
 import { Connectors, Shoukaku } from "shoukaku";
+import { XPManager } from "./managers/xp-manager";
 
 dotenv.config();
 
@@ -52,6 +53,9 @@ class VentryxBot {
     );
 
     this.client.shoukaku = this.shoukaku;
+
+    // Dodaj do global dla workerów
+    (global as any).__ventryxClient = this.client;
 
     this.client.commands = new Collection();
     this.client.workers = new Collection();
@@ -122,7 +126,6 @@ class VentryxBot {
 
     this.shoukaku.on("debug", (name, info) => {
       if (process.env.NODE_ENV === "development") {
-        // Opcjonalnie, żeby nie spamować w produkcji
         console.log(`🔎 Lavalink node "${name}" debug:`, info);
       }
     });
@@ -164,6 +167,10 @@ class VentryxBot {
     try {
       console.log("🤖 Starting Ventryx Bot...");
 
+      // Inicjalizuj XPManager (singleton)
+      XPManager.getInstance();
+      console.log("✅ XPManager initialized");
+
       await connectDatabase();
       await this.loader.reloadAll();
       await this.client.login(process.env.DISCORD_TOKEN);
@@ -182,6 +189,17 @@ class VentryxBot {
 
   private async shutdown(): Promise<void> {
     console.log("🔄 Shutting down Ventryx Bot...");
+
+    // Flush pending XP updates przed zamknięciem
+    try {
+      const xpManager = XPManager.getInstance();
+      const result = await xpManager.flush();
+      console.log(
+        `💾 Final XP flush: ${result.xpUpdates} updates, ${result.voiceUpdates} voice updates`
+      );
+    } catch (error) {
+      console.error("❌ Error flushing XP on shutdown:", error);
+    }
 
     for (const worker of this.client.workers.values()) {
       if (worker.intervalId) {
