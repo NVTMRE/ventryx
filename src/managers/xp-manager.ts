@@ -228,7 +228,8 @@ export class XPManager {
     const toRemove: string[] = [];
 
     for (const [key, update] of this.pendingVoiceUpdates) {
-      if (!update) throw new Error("Pending voice update is undefined");
+      if (!update)
+        throw new Error("Oczekująca aktualizacja głosowa jest niezdefiniowana");
       try {
         // Przypadek 1: Użytkownik opuścił VC (voiceJoinedAt === null)
         if (update.voiceJoinedAt === null && update.voiceTimeToAdd > 0) {
@@ -245,7 +246,8 @@ export class XPManager {
           toRemove.push(key);
         }
         // Przypadek 2: Użytkownik wciąż jest na VC (voiceJoinedAt !== null)
-        else if (update.voiceJoinedAt !== null) {
+        else if (update.voiceJoinedAt) {
+          // Sprawdzenie, czy voiceJoinedAt jest zdefiniowane
           const now = new Date();
           const timeSpent = Math.floor(
             (now.getTime() - update.voiceJoinedAt.getTime()) / 1000
@@ -272,7 +274,10 @@ export class XPManager {
           // NIE usuwamy wpisu - użytkownik wciąż jest na VC!
         }
       } catch (error) {
-        console.error(`Failed to apply voice update for ${key}:`, error);
+        console.error(
+          `Nie udało się zastosować aktualizacji głosowej dla ${key}:`,
+          error
+        );
       }
     }
 
