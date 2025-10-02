@@ -280,6 +280,7 @@ async function playNext(client: VentryxClient, guildId: string, player: any) {
     // Jeśli nie ma więcej utworów i autoplay jest wyłączone, zakończ
     queue.currentTrack = null;
     await player.destroy();
+    queues.delete(guildId); // Usuń kolejkę z pamięci
   }
 }
 
@@ -348,24 +349,12 @@ const command: Command = {
         return;
       }
 
-      // Zachowaj stan autoplay przed zatrzymaniem
-      const queue = getQueue(interaction.guildId!);
-      const wasAutoplayEnabled = queue.autoplay;
-
       player.stopTrack();
       await client.shoukaku.leaveVoiceChannel(interaction.guildId!);
       await player.destroy();
 
-      // Utwórz nową kolejkę zachowując stan autoplay
-      queues.set(interaction.guildId!, {
-        tracks: [],
-        currentTrack: null,
-        autoplay: wasAutoplayEnabled,
-        autoplayTracks: [],
-        repeat: RepeatMode.NONE,
-        isShuffled: false,
-        isPaused: false,
-      });
+      // Usuń kolejkę z pamięci
+      queues.delete(interaction.guildId!);
 
       const embed = new EmbedBuilder()
         .setColor(0xff0000)
@@ -479,28 +468,44 @@ const command: Command = {
 
       if (newAutoplayState && queue.currentTrack) {
         await interaction.deferReply();
-        // Pobierz podobne utwory w tle
-        const similarTracks = await fetchSimilarTracks(
-          client,
-          queue.currentTrack
-        );
-        // Dodaj do kolejki autoplay (zawsze na końcu)
-        queue.autoplayTracks.push(...similarTracks);
 
-        const embed = new EmbedBuilder()
-          .setColor(0x00ff00)
-          .setAuthor({ name: "Autoplay włączone" })
-          .setDescription("Dodano do kolejki podobne utwory:")
-          .addFields(
-            similarTracks.map((track, index) => ({
-              name: `${index + 1}.`,
-              value: `[${track.info.title}](${track.info.uri})`,
-              inline: false,
-            }))
-          )
-          .setTimestamp();
+        // Oblicz ile utworów brakuje do 3
+        const currentAutoplayCount = queue.autoplayTracks.length;
+        const tracksNeeded = Math.max(0, 3 - currentAutoplayCount);
 
-        await interaction.editReply({ embeds: [embed] });
+        if (tracksNeeded > 0) {
+          // Pobierz podobne utwory w tle
+          const similarTracks = await fetchSimilarTracks(
+            client,
+            queue.currentTrack
+          );
+          // Dodaj tylko brakującą liczbę utworów
+          const tracksToAdd = similarTracks.slice(0, tracksNeeded);
+          queue.autoplayTracks.push(...tracksToAdd);
+
+          const embed = new EmbedBuilder()
+            .setColor(0x00ff00)
+            .setAuthor({ name: "Autoplay włączone" })
+            .setDescription("Dodano do kolejki podobne utwory:")
+            .addFields(
+              tracksToAdd.map((track, index) => ({
+                name: `${index + 1}.`,
+                value: `[${track.info.title}](${track.info.uri})`,
+                inline: false,
+              }))
+            )
+            .setTimestamp();
+
+          await interaction.editReply({ embeds: [embed] });
+        } else {
+          const embed = new EmbedBuilder()
+            .setColor(0x00ff00)
+            .setAuthor({ name: "Autoplay włączone" })
+            .setDescription("Kolejka autoplay jest już pełna (3 utwory)")
+            .setTimestamp();
+
+          await interaction.editReply({ embeds: [embed] });
+        }
       } else {
         // Usuń utwory z autoplay z kolejki
         queue.autoplayTracks = [];
@@ -721,14 +726,31 @@ const command: Command = {
           player.on("start", async () => {
             const currentQueue = getQueue(interaction.guildId!);
             if (currentQueue.autoplay && currentQueue.currentTrack) {
-              const similarTracks = await fetchSimilarTracks(
-                client,
-                currentQueue.currentTrack
-              );
-              if (similarTracks.length > 0) {
-                // Dodaj do kolejki autoplay (zawsze na końcu)
-                currentQueue.autoplayTracks.push(...similarTracks);
+              // Oblicz ile utworów brakuje do 3
+              const currentAutoplayCount = currentQueue.autoplayTracks.length;
+              const tracksNeeded = Math.max(0, 3 - currentAutoplayCount);
+
+              if (tracksNeeded > 0) {
+                const similarTracks = await fetchSimilarTracks(
+                  client,
+                  currentQueue.currentTrack
+                );
+                // Dodaj tylko brakującą liczbę utworów
+                const tracksToAdd = similarTracks.slice(0, tracksNeeded);
+                if (tracksToAdd.length > 0) {
+                  currentQueue.autoplayTracks.push(...tracksToAdd);
+                }
               }
+            }
+
+            // Aktualizuj wiadomość odtwarzacza przy każdej zmianie utworu
+            try {
+              await updatePlayerMessage(interaction, currentQueue);
+            } catch (error) {
+              console.error(
+                "Błąd podczas aktualizacji wiadomości odtwarzacza:",
+                error
+              );
             }
           });
         }
@@ -806,7 +828,11 @@ const command: Command = {
             case "stop":
               await player.stopTrack();
               await client.shoukaku.leaveVoiceChannel(interaction.guildId!);
-              break;
+              await player.destroy();
+              queues.delete(interaction.guildId!); // Usuń kolejkę z pamięci
+              collector?.stop(); // Zatrzymaj kolektor
+              await i.update({ components: [] }).catch(() => {}); // Usuń przyciski
+              return;
             case "skip":
               await player.stopTrack();
               break;
@@ -824,11 +850,18 @@ const command: Command = {
               queue.autoplay = !queue.autoplay;
               manageAutoplayState(interaction.guildId!, queue.autoplay);
               if (queue.autoplay && queue.currentTrack) {
-                const similarTracks = await fetchSimilarTracks(
-                  client,
-                  queue.currentTrack
-                );
-                queue.autoplayTracks.push(...similarTracks);
+                // Oblicz ile utworów brakuje do 3
+                const currentAutoplayCount = queue.autoplayTracks.length;
+                const tracksNeeded = Math.max(0, 3 - currentAutoplayCount);
+
+                if (tracksNeeded > 0) {
+                  const similarTracks = await fetchSimilarTracks(
+                    client,
+                    queue.currentTrack
+                  );
+                  const tracksToAdd = similarTracks.slice(0, tracksNeeded);
+                  queue.autoplayTracks.push(...tracksToAdd);
+                }
               } else {
                 // Usuń utwory z autoplay
                 queue.autoplayTracks = [];

@@ -5,6 +5,7 @@ import {
   ClientEvents,
   SlashCommandSubcommandsOnlyBuilder,
   ChatInputCommandInteraction,
+  SlashCommandOptionsOnlyBuilder,
 } from "discord.js";
 import { Shoukaku } from "shoukaku";
 
@@ -15,7 +16,10 @@ export interface VentryxClient extends Client {
 }
 
 export interface Command {
-  data: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
+  data:
+    | SlashCommandBuilder
+    | SlashCommandSubcommandsOnlyBuilder
+    | SlashCommandOptionsOnlyBuilder;
   execute: (interaction: ChatInputCommandInteraction) => Promise<void>;
 }
 

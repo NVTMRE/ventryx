@@ -1,5 +1,3 @@
-// src/commands/autorole.ts
-
 import {
   SlashCommandBuilder,
   EmbedBuilder,
