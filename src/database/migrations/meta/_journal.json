@@ -8,6 +8,13 @@
       "when": 1759333785073,
       "tag": "0000_safe_black_bolt",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1759370048403,
+      "tag": "0001_big_the_twelve",
+      "breakpoints": true
     }
   ]
 }
