@@ -1,5 +1,3 @@
-// src/commands/levelrole.ts
-
 import {
   SlashCommandBuilder,
   ChatInputCommandInteraction,
@@ -168,8 +166,8 @@ async function handleAdd(interaction: ChatInputCommandInteraction) {
     });
   }
 
+  // BEZ nanoid() - Drizzle wygeneruje ID automatycznie
   await db.insert(levelRoles).values({
-    id: nanoid(),
     guildId,
     roleId: role.id,
     minLevel,
