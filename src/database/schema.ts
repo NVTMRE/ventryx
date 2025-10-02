@@ -46,14 +46,16 @@ export const levelConfig = pgTable("level_config", {
 });
 
 export const levelRoles = pgTable("level_roles", {
-  id: text("id").primaryKey(),
+  id: text("id")
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   guildId: text("guild_id").notNull(),
   roleId: text("role_id").notNull(),
-  requiredLevel: integer("required_level").notNull(),
+  minLevel: integer("min_level").notNull(),
+  maxLevel: integer("max_level").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// NOWA TABELA DLA AUTOROLI
 export const autoRoles = pgTable(
   "auto_roles",
   {

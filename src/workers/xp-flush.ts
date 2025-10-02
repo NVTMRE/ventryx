@@ -10,7 +10,6 @@ import {
 import { eq } from "drizzle-orm";
 import { createCanvas, loadImage } from "@napi-rs/canvas";
 
-// Funkcja do konwersji hex na RGB
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   return result
@@ -37,7 +36,6 @@ const worker: Worker = {
         );
       }
 
-      // Obsłuż level upy
       if (result.levelUps.length > 0) {
         const client = (global as any).__ventryxClient as VentryxClient;
         if (client) {
@@ -63,7 +61,6 @@ async function handleLevelUp(
     const member = await guild.members.fetch(levelUp.userId).catch(() => null);
     if (!member) return;
 
-    // Pobierz konfigurację
     const configs = await db
       .select()
       .from(levelConfigTable)
@@ -73,27 +70,38 @@ async function handleLevelUp(
     const config = configs[0];
     if (!config || !config.enabled) return;
 
-    // Przydziel role
-    const roles = await db
+    // ZAKTUALIZOWANE ZARZĄDZANIE ROLAMI - ZAKRESY POZIOMÓW
+    const roleConfigs = await db
       .select()
       .from(levelRoles)
       .where(eq(levelRoles.guildId, levelUp.guildId));
 
-    for (const roleConfig of roles) {
-      if (levelUp.newLevel >= roleConfig.requiredLevel) {
-        const role = guild.roles.cache.get(roleConfig.roleId);
-        if (role && !member.roles.cache.has(role.id)) {
-          await member.roles.add(role).catch((err) => {
-            console.error(`Failed to add role ${role.name}:`, err);
-          });
-        }
-      } else {
-        // Usuń rolę jeśli poziom jest za niski
+    if (roleConfigs.length > 0) {
+      // Najpierw usuń wszystkie role z systemu poziomów
+      for (const roleConfig of roleConfigs) {
         const role = guild.roles.cache.get(roleConfig.roleId);
         if (role && member.roles.cache.has(role.id)) {
           await member.roles.remove(role).catch((err) => {
             console.error(`Failed to remove role ${role.name}:`, err);
           });
+        }
+      }
+
+      // Następnie dodaj odpowiednie role dla aktualnego poziomu
+      for (const roleConfig of roleConfigs) {
+        if (
+          levelUp.newLevel >= roleConfig.minLevel &&
+          levelUp.newLevel <= roleConfig.maxLevel
+        ) {
+          const role = guild.roles.cache.get(roleConfig.roleId);
+          if (role && !member.roles.cache.has(role.id)) {
+            await member.roles.add(role).catch((err) => {
+              console.error(`Failed to add role ${role.name}:`, err);
+            });
+            console.log(
+              `✅ Added role ${role.name} to ${member.user.tag} (Level ${levelUp.newLevel})`
+            );
+          }
         }
       }
     }
@@ -108,7 +116,7 @@ async function handleLevelUp(
       console.log(
         `⚠️ No level up channel configured for guild ${levelUp.guildId}`
       );
-      return; // Nie wysyłaj jeśli nie ma kanału
+      return;
     }
 
     if (!channel) {
@@ -123,22 +131,18 @@ async function handleLevelUp(
         `🎨 Creating level up canvas for ${member.user.tag} (Level ${levelUp.newLevel})`
       );
 
-      // Pobierz kolor z .env
       const embedColor = process.env.EMBEDED_COLOR || "6f00ff";
       const rgb = hexToRgb(embedColor);
 
-      // Stwórz canvas z gratulacjami
       const canvas = createCanvas(700, 200);
       const ctx = canvas.getContext("2d");
 
-      // Tło - ciemne z gradientem
       const bgGradient = ctx.createLinearGradient(0, 0, 700, 200);
       bgGradient.addColorStop(0, "#1a1a1a");
       bgGradient.addColorStop(1, "#0d0d0d");
       ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, 700, 200);
 
-      // Akcent w lewym górnym rogu (trójkąt)
       ctx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -147,7 +151,6 @@ async function handleLevelUp(
       ctx.closePath();
       ctx.fill();
 
-      // Avatar użytkownika
       try {
         const avatarURL = member.user.displayAvatarURL({
           extension: "png",
@@ -155,7 +158,6 @@ async function handleLevelUp(
         });
         const avatar = await loadImage(avatarURL);
 
-        // Rysuj okrągły avatar
         ctx.save();
         ctx.beginPath();
         ctx.arc(100, 100, 50, 0, Math.PI * 2);
@@ -164,7 +166,6 @@ async function handleLevelUp(
         ctx.drawImage(avatar, 50, 50, 100, 100);
         ctx.restore();
 
-        // Obramowanie avatara
         ctx.strokeStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -172,7 +173,6 @@ async function handleLevelUp(
         ctx.stroke();
       } catch (error) {
         console.error("Błąd ładowania avatara:", error);
-        // Fallback - koło z inicjałem
         ctx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
         ctx.beginPath();
         ctx.arc(100, 100, 50, 0, Math.PI * 2);
@@ -184,44 +184,38 @@ async function handleLevelUp(
         ctx.fillText(member.user.username[0].toUpperCase(), 100, 115);
       }
 
-      // Główny tekst gratulacji
       ctx.textAlign = "left";
       ctx.fillStyle = "#FFFFFF";
       ctx.font = "bold 32px Arial";
 
-      // Użyj custom message jeśli jest ustawiony
       let mainText = "GRATULACJE!";
       let subText = `Osiągnąłeś poziom ${levelUp.newLevel}!`;
 
       if (config.levelUpMessage) {
-        // Parsuj custom message - usuń markdown i przetwórz \n
         let customMsg = config.levelUpMessage
           .replace(/\{user\}/g, member.user.username)
           .replace(/\{level\}/g, levelUp.newLevel.toString());
 
         console.log("📝 Original message:", customMsg);
 
-        // Zamień różne warianty nowej linii na prawdziwy \n
         customMsg = customMsg
-          .replace(/\\\\n/g, "\n") // \\n (podwójny escape)
-          .replace(/\\n/g, "\n") // \n (literalny tekst)
-          .replace(/\r\n/g, "\n") // Windows line ending
-          .replace(/\r/g, "\n"); // Mac line ending
+          .replace(/\\\\n/g, "\n")
+          .replace(/\\n/g, "\n")
+          .replace(/\r\n/g, "\n")
+          .replace(/\r/g, "\n");
 
         console.log("📝 After newline processing:", customMsg);
 
-        // Usuń markdown formatting dla canvas, ale zachowaj emoji w osobnej zmiennej
-        let messageWithEmoji = customMsg; // Zachowaj oryginalny z emoji
+        let messageWithEmoji = customMsg;
 
         customMsg = customMsg
-          .replace(/\*\*(.+?)\*\*/g, "$1") // **bold**
-          .replace(/\*(.+?)\*/g, "$1") // *italic*
-          .replace(/__(.+?)__/g, "$1") // __underline__
-          .replace(/_(.+?)_/g, "$1") // _italic_
-          .replace(/~~(.+?)~~/g, "$1") // ~~strikethrough~~
-          .replace(/`(.+?)`/g, "$1"); // `code`
+          .replace(/\*\*(.+?)\*\*/g, "$1")
+          .replace(/\*(.+?)\*/g, "$1")
+          .replace(/__(.+?)__/g, "$1")
+          .replace(/_(.+?)_/g, "$1")
+          .replace(/~~(.+?)~~/g, "$1")
+          .replace(/`(.+?)`/g, "$1");
 
-        // Usuń emoji z canvas (renderują się źle), ale zostaw w zmiennej
         const emojiRegex =
           /[\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu;
         customMsg = customMsg.replace(emojiRegex, "").trim();
@@ -229,7 +223,6 @@ async function handleLevelUp(
         console.log("📝 After markdown removal:", customMsg);
         console.log("📝 Message with emoji:", messageWithEmoji);
 
-        // Podziel na linie
         const lines = customMsg
           .split("\n")
           .filter((line) => line.trim().length > 0);
@@ -243,7 +236,6 @@ async function handleLevelUp(
           mainText = customMsg;
           subText = "";
         } else {
-          // Jeśli długi, podziel na dwie linie
           const words = customMsg.split(" ");
           const mid = Math.ceil(words.length / 2);
           mainText = words.slice(0, mid).join(" ");
@@ -253,14 +245,12 @@ async function handleLevelUp(
 
       ctx.fillText(mainText, 180, 80);
 
-      // Podtytuł
       if (subText) {
         ctx.fillStyle = "#AAAAAA";
         ctx.font = "22px Arial";
         ctx.fillText(subText, 180, 115);
       }
 
-      // Duży numer poziomu po prawej
       ctx.textAlign = "right";
       ctx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
       ctx.font = "bold 80px Arial";
@@ -270,7 +260,6 @@ async function handleLevelUp(
       ctx.font = "18px Arial";
       ctx.fillText("POZIOM", 660, 145);
 
-      // Dekoracyjna linia na dole
       const lineGradient = ctx.createLinearGradient(50, 170, 650, 170);
       lineGradient.addColorStop(0, `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0)`);
       lineGradient.addColorStop(0.5, `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`);
@@ -283,7 +272,6 @@ async function handleLevelUp(
       ctx.lineTo(650, 170);
       ctx.stroke();
 
-      // Konwertuj canvas do bufora
       const buffer = canvas.toBuffer("image/png");
       const attachment = new AttachmentBuilder(buffer, {
         name: "level-up.png",
