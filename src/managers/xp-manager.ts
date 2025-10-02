@@ -207,6 +207,7 @@ export class XPManager {
     let xpUpdates = 0;
     let voiceUpdates = 0;
 
+    // Przetwarzanie XP z wiadomości
     for (const [key, update] of this.pendingXPUpdates) {
       try {
         const result = await this.applyXPUpdate(update);
@@ -223,9 +224,15 @@ export class XPManager {
       }
     }
 
+    // Przetwarzanie XP z voice
+    const toRemove: string[] = [];
+
     for (const [key, update] of this.pendingVoiceUpdates) {
-      if (update.voiceTimeToAdd > 0) {
-        try {
+      if (!update)
+        throw new Error("Oczekująca aktualizacja głosowa jest niezdefiniowana");
+      try {
+        // Przypadek 1: Użytkownik opuścił VC (voiceJoinedAt === null)
+        if (update.voiceJoinedAt === null && update.voiceTimeToAdd > 0) {
           const result = await this.applyVoiceUpdate(update);
           if (result.leveledUp) {
             levelUps.push({
@@ -235,14 +242,52 @@ export class XPManager {
             });
           }
           voiceUpdates++;
-        } catch (error) {
-          console.error(`Failed to apply voice update for ${key}:`, error);
+          // Oznacz do usunięcia - użytkownik już wyszedł
+          toRemove.push(key);
         }
+        // Przypadek 2: Użytkownik wciąż jest na VC (voiceJoinedAt !== null)
+        else if (update.voiceJoinedAt) {
+          // Sprawdzenie, czy voiceJoinedAt jest zdefiniowane
+          const now = new Date();
+          const timeSpent = Math.floor(
+            (now.getTime() - update.voiceJoinedAt.getTime()) / 1000
+          );
+
+          // Jeśli spędził już jakiś czas, dodaj XP
+          if (timeSpent > 0) {
+            update.voiceTimeToAdd += timeSpent;
+
+            const result = await this.applyVoiceUpdate(update);
+            if (result.leveledUp) {
+              levelUps.push({
+                userId: update.userId,
+                guildId: update.guildId,
+                newLevel: result.newLevel!,
+              });
+            }
+            voiceUpdates++;
+
+            // Reset licznika - zaczynamy liczyć od nowa
+            update.voiceTimeToAdd = 0;
+            update.voiceJoinedAt = now;
+          }
+          // NIE usuwamy wpisu - użytkownik wciąż jest na VC!
+        }
+      } catch (error) {
+        console.error(
+          `Nie udało się zastosować aktualizacji głosowej dla ${key}:`,
+          error
+        );
       }
     }
 
+    // Usuń tylko użytkowników którzy opuścili VC
+    for (const key of toRemove) {
+      this.pendingVoiceUpdates.delete(key);
+    }
+
+    // Wyczyść XP z wiadomości (zawsze bezpieczne)
     this.pendingXPUpdates.clear();
-    this.pendingVoiceUpdates.clear();
 
     return { xpUpdates, voiceUpdates, levelUps };
   }
