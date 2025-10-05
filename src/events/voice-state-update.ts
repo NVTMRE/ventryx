@@ -32,50 +32,94 @@ const event: Event = {
 
       const xpManager = XPManager.getInstance();
 
-      // Użytkownik dołączył do kanału głosowego
+      // ========== UŻYTKOWNIK DOŁĄCZYŁ DO KANAŁU ==========
       if (!oldState.channel && newState.channel) {
-        // Sprawdź czy na kanale jest wystarczająco osób (min 2)
         const membersInChannel = newState.channel.members.filter(
           (m) => !m.user.bot
         ).size;
 
+        console.log(
+          `🎤 ${newState.member?.user.tag} dołączył do VC (${membersInChannel} osób)`
+        );
+
+        // Jeśli jest wystarczająco osób, rozpocznij sesję dla nowego użytkownika
         if (membersInChannel >= levelConfigFile.minVoiceMembers) {
           xpManager.setVoiceJoined(userId, guildId);
           console.log(
-            `🎤 ${newState.member?.user.tag} dołączył do VC w ${newState.guild.name}`
+            `✅ Rozpoczęto sesję XP dla ${newState.member?.user.tag}`
           );
+
+          // NOWE: Jeśli to druga osoba, która dołączyła, rozpocznij sesję dla pierwszej osoby też
+          if (membersInChannel === levelConfigFile.minVoiceMembers) {
+            for (const [memberId, member] of newState.channel.members) {
+              if (!member.user.bot && memberId !== userId) {
+                xpManager.setVoiceJoined(memberId, guildId);
+                console.log(
+                  `✅ Rozpoczęto sesję XP dla ${member.user.tag} (aktywacja minimum)`
+                );
+              }
+            }
+          }
         }
       }
 
-      // Użytkownik opuścił kanał głosowy
+      // ========== UŻYTKOWNIK OPUŚCIŁ KANAŁ ==========
       else if (oldState.channel && !newState.channel) {
-        // Sprawdź czy był na prawidłowym kanale (z wystarczającą ilością osób)
+        // Liczba osób PRZED wyjściem użytkownika
         const membersInOldChannel = oldState.channel.members.filter(
           (m) => !m.user.bot
         ).size;
-        const wasValid =
-          membersInOldChannel >= levelConfigFile.minVoiceMembers - 1; // -1 bo user już wyszedł
 
+        console.log(
+          `🎤 ${newState.member?.user.tag} opuścił VC (zostało ${membersInOldChannel} osób)`
+        );
+
+        // Użytkownik był na kanale z wystarczającą liczbą osób
+        const wasValid = membersInOldChannel >= levelConfigFile.minVoiceMembers;
+
+        // NATYCHMIASTOWO zakończ sesję i zapisz XP dla wychodzącego użytkownika
         await xpManager.setVoiceLeft(userId, guildId, wasValid);
         console.log(
-          `🎤 ${newState.member?.user.tag} opuścił VC w ${newState.guild.name}`
+          `✅ Zakończono sesję XP dla ${newState.member?.user.tag} (valid: ${wasValid})`
         );
+
+        // NOWE: Jeśli po wyjściu zostało mniej niż minimum osób, zakończ sesje dla pozostałych
+        if (membersInOldChannel < levelConfigFile.minVoiceMembers) {
+          console.log(
+            `⚠️ Spadek poniżej minimum (${membersInOldChannel}), kończę wszystkie sesje`
+          );
+          for (const [memberId, member] of oldState.channel.members) {
+            if (!member.user.bot) {
+              await xpManager.setVoiceLeft(memberId, guildId, true);
+              console.log(
+                `✅ Zakończono sesję XP dla ${member.user.tag} (brak minimum)`
+              );
+            }
+          }
+        }
       }
 
-      // Użytkownik przełączył się między kanałami
+      // ========== UŻYTKOWNIK PRZEŁĄCZYŁ SIĘ MIĘDZY KANAŁAMI ==========
       else if (
         oldState.channel &&
         newState.channel &&
         oldState.channel.id !== newState.channel.id
       ) {
+        console.log(
+          `🎤 ${newState.member?.user.tag} przełączył się między kanałami`
+        );
+
         // Zakończ sesję na starym kanale
         const membersInOldChannel = oldState.channel.members.filter(
           (m) => !m.user.bot
         ).size;
         const wasOldValid =
-          membersInOldChannel >= levelConfigFile.minVoiceMembers - 1;
+          membersInOldChannel >= levelConfigFile.minVoiceMembers;
 
         await xpManager.setVoiceLeft(userId, guildId, wasOldValid);
+        console.log(
+          `✅ Zakończono sesję na starym kanale (valid: ${wasOldValid})`
+        );
 
         // Rozpocznij nową sesję na nowym kanale
         const membersInNewChannel = newState.channel.members.filter(
@@ -84,41 +128,29 @@ const event: Event = {
 
         if (membersInNewChannel >= levelConfigFile.minVoiceMembers) {
           xpManager.setVoiceJoined(userId, guildId);
-        }
+          console.log(`✅ Rozpoczęto sesję na nowym kanale`);
 
-        console.log(
-          `🎤 ${newState.member?.user.tag} przełączył się między kanałami VC`
-        );
-      }
-
-      // Użytkownik zmienił stan (mute/unmute/deafen) - sprawdź czy nadal jest wystarczająco osób
-      else if (
-        oldState.channel &&
-        newState.channel &&
-        oldState.channel.id === newState.channel.id
-      ) {
-        const membersInChannel = newState.channel.members.filter(
-          (m) => !m.user.bot
-        ).size;
-
-        // Jeśli spadło poniżej minimum, zakończ sesję wszystkim
-        if (membersInChannel < levelConfigFile.minVoiceMembers) {
-          // Zakończ sesję dla tego użytkownika
-          await xpManager.setVoiceLeft(userId, guildId, false);
-
-          // Zakończ sesje dla pozostałych użytkowników na kanale
-          for (const [memberId, member] of newState.channel.members) {
-            if (!member.user.bot && memberId !== userId) {
-              await xpManager.setVoiceLeft(memberId, guildId, false);
+          // Jeśli to druga osoba, aktywuj pierwszą
+          if (membersInNewChannel === levelConfigFile.minVoiceMembers) {
+            for (const [memberId, member] of newState.channel.members) {
+              if (!member.user.bot && memberId !== userId) {
+                xpManager.setVoiceJoined(memberId, guildId);
+                console.log(
+                  `✅ Rozpoczęto sesję XP dla ${member.user.tag} (aktywacja minimum)`
+                );
+              }
             }
           }
         }
-        // Jeśli wzrosło do minimum, rozpocznij sesje
-        else if (membersInChannel === levelConfigFile.minVoiceMembers) {
-          // Rozpocznij sesje dla wszystkich na kanale
-          for (const [memberId, member] of newState.channel.members) {
+
+        // Sprawdź czy na starym kanale nie spadło poniżej minimum
+        if (membersInOldChannel < levelConfigFile.minVoiceMembers) {
+          for (const [memberId, member] of oldState.channel.members) {
             if (!member.user.bot) {
-              xpManager.setVoiceJoined(memberId, guildId);
+              await xpManager.setVoiceLeft(memberId, guildId, true);
+              console.log(
+                `✅ Zakończono sesję XP dla ${member.user.tag} na starym kanale (brak minimum)`
+              );
             }
           }
         }
