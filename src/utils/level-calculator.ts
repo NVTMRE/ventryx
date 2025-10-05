@@ -93,7 +93,7 @@ export class LevelCalculator {
     const xpForNextLevel = this.getTotalXPForLevel(currentLevel + 1);
     const xpInCurrentLevel = totalXP - xpForCurrentLevel;
     const xpNeededForLevel = xpForNextLevel - xpForCurrentLevel;
-    
+
     return Math.min(xpInCurrentLevel / xpNeededForLevel, 1);
   }
 
@@ -110,7 +110,7 @@ export class LevelCalculator {
         remainingMinutes,
         tier.maxMinutes - tier.minMinutes
       );
-      
+
       if (minutesInTier <= 0) break;
 
       totalXP += Math.floor(minutesInTier * xpPerMinute * tier.multiplier);
@@ -165,5 +165,31 @@ export class LevelCalculator {
 
   static clearCache(): void {
     this.xpCache.clear();
+  }
+
+  static calculateVoiceXPPrecise(
+    exactMinutes: number,
+    xpPerMinute: number
+  ): number {
+    let totalXP = 0;
+    let remainingMinutes = exactMinutes;
+
+    for (const tier of levelConfig.voiceXPMultipliers) {
+      const minutesInTier = Math.min(
+        remainingMinutes,
+        tier.maxMinutes - tier.minMinutes
+      );
+
+      if (minutesInTier <= 0) break;
+
+      // NIE zaokrąglamy - używamy dokładnej wartości
+      totalXP += minutesInTier * xpPerMinute * tier.multiplier;
+      remainingMinutes -= minutesInTier;
+
+      if (remainingMinutes <= 0) break;
+    }
+
+    // Zaokrąglamy dopiero na końcu
+    return Math.floor(totalXP);
   }
 }
