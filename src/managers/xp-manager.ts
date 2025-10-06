@@ -21,9 +21,11 @@ interface PendingXPUpdate {
 interface PendingVoiceUpdate {
   userId: string;
   guildId: string;
-  totalSecondsSpent: number; // ZMIANA: całkowity czas od początku sesji
-  sessionStartedAt: Date | null; // ZMIANA: kiedy rozpoczęła się cała sesja
-  lastFlushAt: Date | null; // ZMIANA: kiedy ostatnio przetworzyliśmy XP
+  totalSecondsSpent: number;
+  sessionStartedAt: Date | null;
+  lastFlushAt: Date | null;
+  isPaused: boolean; // NOWE: czy sesja jest wstrzymana
+  pausedAt: Date | null; // NOWE: kiedy wstrzymano sesję
 }
 
 export class XPManager {
@@ -122,11 +124,11 @@ export class XPManager {
   setVoiceJoined(userId: string, guildId: string): void {
     const key = this.getKey(userId, guildId);
     const now = new Date();
-    
+
     const existing = this.pendingVoiceUpdates.get(key);
-    
+
     // Jeśli użytkownik już ma aktywną sesję, nie rób nic
-    if (existing && existing.sessionStartedAt) {
+    if (existing && existing.sessionStartedAt && !existing.isPaused) {
       console.log(`⚠️ Użytkownik ${userId} już ma aktywną sesję VC, pomijam`);
       return;
     }
@@ -138,9 +140,75 @@ export class XPManager {
       totalSecondsSpent: 0,
       sessionStartedAt: now,
       lastFlushAt: now,
+      isPaused: false,
+      pausedAt: null,
     });
-    
-    console.log(`📝 Rozpoczęto NOWĄ sesję VC dla ${userId} o ${now.toISOString()}`);
+
+    console.log(
+      `📝 Rozpoczęto NOWĄ sesję VC dla ${userId} o ${now.toISOString()}`
+    );
+  }
+
+  // NOWA METODA: Wstrzymaj sesję (np. gdy użytkownik się wyciszy)
+  async pauseVoiceSession(
+    userId: string,
+    guildId: string,
+    wasInValidChannel: boolean
+  ): Promise<void> {
+    const key = this.getKey(userId, guildId);
+    const pending = this.pendingVoiceUpdates.get(key);
+
+    if (!pending || !pending.sessionStartedAt || pending.isPaused) {
+      console.log(`⚠️ Nie można wstrzymać - brak aktywnej sesji dla ${userId}`);
+      return;
+    }
+
+    const now = new Date();
+
+    // Oblicz czas od ostatniego flush do teraz
+    const timeActiveNow = Math.floor(
+      (now.getTime() - pending.lastFlushAt!.getTime()) / 1000
+    );
+
+    console.log(
+      `⏸️ Wstrzymuję sesję dla ${userId}, aktywny czas: ${timeActiveNow}s`
+    );
+
+    // Zaktualizuj całkowity czas (dodaj czas od ostatniego flush)
+    pending.totalSecondsSpent += timeActiveNow;
+    pending.isPaused = true;
+    pending.pausedAt = now;
+    pending.lastFlushAt = now; // Ustaw lastFlush na moment pauzy
+
+    console.log(
+      `⏸️ Sesja wstrzymana dla ${userId}, łącznie przetworzone: ${pending.totalSecondsSpent}s`
+    );
+  }
+
+  // NOWA METODA: Wznów sesję (np. gdy użytkownik się odciszy)
+  resumeVoiceSession(userId: string, guildId: string): void {
+    const key = this.getKey(userId, guildId);
+    const pending = this.pendingVoiceUpdates.get(key);
+
+    if (!pending || !pending.isPaused) {
+      console.log(
+        `⚠️ Nie można wznowić - sesja nie jest wstrzymana dla ${userId}`
+      );
+      return;
+    }
+
+    const now = new Date();
+
+    console.log(`▶️ Wznawianie sesji dla ${userId}`);
+
+    // Wznów sesję - ustaw nowy punkt startowy dla liczenia czasu
+    pending.isPaused = false;
+    pending.pausedAt = null;
+    pending.lastFlushAt = now; // Nowy punkt startowy dla liczenia
+
+    console.log(
+      `▶️ Sesja wznowiona dla ${userId}, poprzednio przetworzone: ${pending.totalSecondsSpent}s`
+    );
   }
 
   async setVoiceLeft(
@@ -151,7 +219,9 @@ export class XPManager {
     const key = this.getKey(userId, guildId);
     const pending = this.pendingVoiceUpdates.get(key);
 
-    console.log(`📤 setVoiceLeft wywołane dla ${userId}, wasInValidChannel: ${wasInValidChannel}`);
+    console.log(
+      `📤 setVoiceLeft wywołane dla ${userId}, wasInValidChannel: ${wasInValidChannel}`
+    );
 
     if (!pending || !wasInValidChannel) {
       console.log(`❌ Brak ważnej sesji do zakończenia dla ${userId}`);
@@ -165,21 +235,36 @@ export class XPManager {
     }
 
     const now = new Date();
-    
-    // Oblicz czas od rozpoczęcia sesji (CAŁKOWITY CZAS)
-    const totalTimeInSession = Math.floor(
-      (now.getTime() - pending.sessionStartedAt.getTime()) / 1000
+
+    // Jeśli sesja była wstrzymana, użyj czasu do momentu pauzy
+    // Jeśli była aktywna, dodaj czas od ostatniego flush
+    if (!pending.isPaused && pending.lastFlushAt) {
+      const additionalTime = Math.floor(
+        (now.getTime() - pending.lastFlushAt.getTime()) / 1000
+      );
+      pending.totalSecondsSpent += additionalTime;
+      console.log(`⏱️ Dodano końcowy aktywny czas: ${additionalTime}s`);
+    }
+
+    console.log(
+      `⏱️ CAŁKOWITY czas aktywny na VC: ${
+        pending.totalSecondsSpent
+      }s (${Math.floor(pending.totalSecondsSpent / 60)} min ${
+        pending.totalSecondsSpent % 60
+      }s)`
     );
 
-    console.log(`⏱️ CAŁKOWITY czas na VC: ${totalTimeInSession}s (${Math.floor(totalTimeInSession / 60)} min ${totalTimeInSession % 60}s)`);
-    console.log(`📊 Poprzednio przetworzone: ${pending.totalSecondsSpent}s`);
-
-    // Ustaw końcowy czas - to jest suma wszystkich sekund od początku sesji
-    pending.totalSecondsSpent = totalTimeInSession;
-    pending.sessionStartedAt = null; // Oznacz jako zakończoną sesję
+    // Oznacz jako zakończoną sesję
+    pending.sessionStartedAt = null;
     pending.lastFlushAt = null;
-    
-    console.log(`✅ Zakolejkowano ${pending.totalSecondsSpent}s (${Math.floor(pending.totalSecondsSpent / 60)} min) XP dla ${userId} do wypłaty`);
+    pending.isPaused = false;
+    pending.pausedAt = null;
+
+    console.log(
+      `✅ Zakolejkowano ${pending.totalSecondsSpent}s (${Math.floor(
+        pending.totalSecondsSpent / 60
+      )} min) XP dla ${userId} do wypłaty`
+    );
   }
 
   private configCache: Map<string, { config: any; timestamp: number }> =
@@ -254,7 +339,7 @@ export class XPManager {
       }
     }
 
-    // NOWA LOGIKA GŁOSOWA
+    // ZAKTUALIZOWANA LOGIKA GŁOSOWA (z obsługą pauzy)
     const toRemove: string[] = [];
     const now = new Date();
 
@@ -267,8 +352,12 @@ export class XPManager {
       try {
         // PRZYPADEK 1: Użytkownik OPUŚCIŁ VC (sessionStartedAt === null)
         if (update.sessionStartedAt === null && update.totalSecondsSpent > 0) {
-          console.log(`💰 Użytkownik ${update.userId} wyszedł z VC, wypłacam ${update.totalSecondsSpent}s (${Math.floor(update.totalSecondsSpent / 60)} min)`);
-          
+          console.log(
+            `💰 Użytkownik ${update.userId} wyszedł z VC, wypłacam ${
+              update.totalSecondsSpent
+            }s (${Math.floor(update.totalSecondsSpent / 60)} min)`
+          );
+
           const result = await this.applyVoiceUpdate(update);
           if (result.leveledUp) {
             levelUps.push({
@@ -280,61 +369,63 @@ export class XPManager {
           voiceUpdates++;
           toRemove.push(key);
         }
-        // PRZYPADEK 2: Użytkownik WCIĄŻ NA VC (sessionStartedAt !== null)
-        else if (update.sessionStartedAt && update.lastFlushAt) {
-          // Oblicz całkowity czas od POCZĄTKU SESJI
-          const totalTimeInSession = Math.floor(
-            (now.getTime() - update.sessionStartedAt.getTime()) / 1000
-          );
-          
-          // Oblicz nowy czas od ostatniego flush
+        // PRZYPADEK 2: Użytkownik WCIĄŻ NA VC i NIE JEST WSTRZYMANY
+        else if (
+          update.sessionStartedAt &&
+          update.lastFlushAt &&
+          !update.isPaused
+        ) {
           const timeSinceLastFlush = Math.floor(
             (now.getTime() - update.lastFlushAt.getTime()) / 1000
           );
 
-          console.log(`🎙️ Użytkownik ${update.userId} wciąż na VC:`);
-          console.log(`   ⏱️  Całkowity czas w sesji: ${totalTimeInSession}s (${Math.floor(totalTimeInSession / 60)} min ${totalTimeInSession % 60}s)`);
+          console.log(`🎙️ Użytkownik ${update.userId} wciąż AKTYWNY na VC:`);
           console.log(`   🔄 Od ostatniego flush: ${timeSinceLastFlush}s`);
-          console.log(`   📊 Poprzednio przetworzone: ${update.totalSecondsSpent}s`);
+          console.log(
+            `   📊 Poprzednio przetworzone: ${update.totalSecondsSpent}s`
+          );
 
-          // Jeśli minęło przynajmniej kilka sekund, wypłać XP za NOWY czas
           if (timeSinceLastFlush > 0) {
-            const newSecondsToProcess = totalTimeInSession - update.totalSecondsSpent;
-            
-            if (newSecondsToProcess > 0) {
-              console.log(`   💰 Wypłacam XP za NOWE ${newSecondsToProcess}s`);
-              
-              // Stwórz tymczasowy update tylko z NOWYM czasem
-              const tempUpdate = {
-                ...update,
-                totalSecondsSpent: newSecondsToProcess,
-              };
-              
-              const result = await this.applyVoiceUpdate(tempUpdate);
-              if (result.leveledUp) {
-                levelUps.push({
-                  userId: update.userId,
-                  guildId: update.guildId,
-                  newLevel: result.newLevel!,
-                });
-              }
-              voiceUpdates++;
+            console.log(`   💰 Wypłacam XP za NOWE ${timeSinceLastFlush}s`);
 
-              // Zaktualizuj ile już przetworzyliśmy
-              update.totalSecondsSpent = totalTimeInSession;
-              update.lastFlushAt = now;
-              
-              console.log(`   ✅ Zaktualizowano: przetworzone łącznie ${update.totalSecondsSpent}s`);
+            const tempUpdate = {
+              ...update,
+              totalSecondsSpent: timeSinceLastFlush,
+            };
+
+            const result = await this.applyVoiceUpdate(tempUpdate);
+            if (result.leveledUp) {
+              levelUps.push({
+                userId: update.userId,
+                guildId: update.guildId,
+                newLevel: result.newLevel!,
+              });
             }
+            voiceUpdates++;
+
+            update.totalSecondsSpent += timeSinceLastFlush;
+            update.lastFlushAt = now;
+
+            console.log(
+              `   ✅ Zaktualizowano: przetworzone łącznie ${update.totalSecondsSpent}s`
+            );
           }
-          // NIE usuwamy - użytkownik wciąż na VC!
         }
-        // PRZYPADEK 3: Cleanup pustych wpisów
+        // PRZYPADEK 3: Użytkownik WSTRZYMANY (isPaused = true)
+        else if (update.sessionStartedAt && update.isPaused) {
+          console.log(
+            `⏸️ Użytkownik ${update.userId} jest WSTRZYMANY (wyciszony)`
+          );
+          console.log(
+            `   📊 Przetworzone do wstrzymania: ${update.totalSecondsSpent}s`
+          );
+          // Nie robimy nic - czekamy aż się odciszy lub wyjdzie
+        }
+        // PRZYPADEK 4: Cleanup pustych wpisów
         else if (!update.sessionStartedAt && update.totalSecondsSpent === 0) {
           console.log(`🧹 Czyszczę pusty wpis dla ${update.userId}`);
           toRemove.push(key);
         }
-        
       } catch (error) {
         console.error(
           `Nie udało się zastosować aktualizacji głosowej dla ${key}:`,
@@ -352,8 +443,12 @@ export class XPManager {
     // Wyczyść XP z wiadomości
     this.pendingXPUpdates.clear();
 
-    console.log(`✅ XP Updates: ${xpUpdates}, Voice Updates: ${voiceUpdates}, Level Ups: ${levelUps.length}`);
-    console.log(`🎤 Pozostałe aktywne sesje VC: ${this.pendingVoiceUpdates.size}`);
+    console.log(
+      `✅ XP Updates: ${xpUpdates}, Voice Updates: ${voiceUpdates}, Level Ups: ${levelUps.length}`
+    );
+    console.log(
+      `🎤 Pozostałe aktywne sesje VC: ${this.pendingVoiceUpdates.size}`
+    );
     console.log(`🔄 === FLUSH END ===\n`);
 
     return { xpUpdates, voiceUpdates, levelUps };
@@ -411,15 +506,18 @@ export class XPManager {
     newLevel?: number;
   }> {
     const config = await this.getGuildConfig(update.guildId);
-    
-    // Zamień sekundy na minuty (z dokładnością dziesiętną)
+
     const exactMinutes = update.totalSecondsSpent / 60;
     const xpToAdd = LevelCalculator.calculateVoiceXPPrecise(
       exactMinutes,
       config.xpPerVoiceMinute
     );
 
-    console.log(`💎 Obliczono XP: ${update.totalSecondsSpent}s (${exactMinutes.toFixed(2)} min) = ${xpToAdd} XP dla ${update.userId}`);
+    console.log(
+      `💎 Obliczono XP: ${update.totalSecondsSpent}s (${exactMinutes.toFixed(
+        2
+      )} min) = ${xpToAdd} XP dla ${update.userId}`
+    );
 
     const existing = await db
       .select()
@@ -436,7 +534,9 @@ export class XPManager {
     const newXP = oldXP + xpToAdd;
     const newLevel = LevelCalculator.calculateLevel(newXP);
 
-    console.log(`📈 ${update.userId}: ${oldXP} XP -> ${newXP} XP (+${xpToAdd} XP, level ${newLevel})`);
+    console.log(
+      `📈 ${update.userId}: ${oldXP} XP -> ${newXP} XP (+${xpToAdd} XP, level ${newLevel})`
+    );
 
     if (existing[0]) {
       await db
